@@ -27,10 +27,7 @@ const positiveMessages = [
   "I am so proud of you!",
 ];
 
-const negativeMessages = [
-  "Don't give up!",
-  "Focus...",
-];
+const negativeMessages = ["Don't give up!", "Focus..."];
 
 // Character assets
 const playerBody1 = "https://files.catbox.moe/bvvqko.png";
@@ -195,9 +192,9 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
     // Determine enemy size based on screen width (44% smaller on screens < 1024px)
     const isSmallScreen = window.innerWidth < 1024;
     const enemyTargetHeight = isSmallScreen ? 101 : 180; // 180 * 0.56 ≈ 101
-    
+
     const gameState = gameStateRef.current;
-    
+
     // Set initial player Y position to center of canvas
     gameState.player.y = canvas.height / 2 - gameState.player.height / 2;
     gameState.basePlayerY = gameState.player.y;
@@ -217,7 +214,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
         bgWidth = bgImage.width * bgScale;
       }
     };
-    
+
     bgImage.onerror = () => {
       console.error("Failed to load background image");
       bgImageLoaded = false;
@@ -233,7 +230,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
         playerImageLoaded = true;
       }
     };
-    
+
     playerImg.onerror = () => {
       console.error("Failed to load player image");
       playerImageLoaded = false;
@@ -253,7 +250,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
         faceNormalHeight = faceNormalImg.naturalHeight;
       }
     };
-    
+
     faceNormalImg.onerror = () => {
       console.error("Failed to load normal face image");
       faceNormalLoaded = false;
@@ -272,7 +269,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
         faceAngryHeight = faceAngryImg.naturalHeight;
       }
     };
-    
+
     faceAngryImg.onerror = () => {
       console.error("Failed to load angry face image");
       faceAngryLoaded = false;
@@ -285,13 +282,16 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
     let faceCelebrationHeight = 0;
 
     faceCelebrationImg.onload = () => {
-      if (faceCelebrationImg.naturalWidth > 0 && faceCelebrationImg.naturalHeight > 0) {
+      if (
+        faceCelebrationImg.naturalWidth > 0 &&
+        faceCelebrationImg.naturalHeight > 0
+      ) {
         faceCelebrationLoaded = true;
         faceCelebrationWidth = faceCelebrationImg.naturalWidth;
         faceCelebrationHeight = faceCelebrationImg.naturalHeight;
       }
     };
-    
+
     faceCelebrationImg.onerror = () => {
       console.error("Failed to load celebration face image");
       faceCelebrationLoaded = false;
@@ -304,16 +304,17 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
     const enemySkeletonImages: HTMLImageElement[] = [];
     const enemySkeletonImagesLoaded: boolean[] = [];
     const enemySkeletonAspectRatios: number[] = [];
-    
+
     // Load each enemy type (body + skeleton)
     enemyTypes.forEach((enemyType, index) => {
       // Load body
       const bodyImg = new Image();
       bodyImg.src = enemyType.body;
-      bodyImg.onload = () => { 
+      bodyImg.onload = () => {
         if (bodyImg.naturalWidth > 0 && bodyImg.naturalHeight > 0) {
           enemyBodyImagesLoaded[index] = true;
-          enemyBodyAspectRatios[index] = bodyImg.naturalWidth / bodyImg.naturalHeight;
+          enemyBodyAspectRatios[index] =
+            bodyImg.naturalWidth / bodyImg.naturalHeight;
         }
       };
       bodyImg.onerror = () => {
@@ -321,14 +322,15 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
         enemyBodyImagesLoaded[index] = false;
       };
       enemyBodyImages.push(bodyImg);
-      
+
       // Load skeleton
       const skeletonImg = new Image();
       skeletonImg.src = enemyType.skeleton;
-      skeletonImg.onload = () => { 
+      skeletonImg.onload = () => {
         if (skeletonImg.naturalWidth > 0 && skeletonImg.naturalHeight > 0) {
           enemySkeletonImagesLoaded[index] = true;
-          enemySkeletonAspectRatios[index] = skeletonImg.naturalWidth / skeletonImg.naturalHeight;
+          enemySkeletonAspectRatios[index] =
+            skeletonImg.naturalWidth / skeletonImg.naturalHeight;
         }
       };
       skeletonImg.onerror = () => {
@@ -336,7 +338,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
         enemySkeletonImagesLoaded[index] = false;
       };
       enemySkeletonImages.push(skeletonImg);
-      
+
       // Initialize loaded states
       enemyBodyImagesLoaded[index] = false;
       enemyBodyAspectRatios[index] = 1;
@@ -356,7 +358,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
         flame1AspectRatio = flame1Img.naturalWidth / flame1Img.naturalHeight;
       }
     };
-    
+
     flame1Img.onerror = () => {
       console.error("Failed to load flame1 image");
       flame1Loaded = false;
@@ -373,13 +375,11 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
         flame2AspectRatio = flame2Img.naturalWidth / flame2Img.naturalHeight;
       }
     };
-    
+
     flame2Img.onerror = () => {
       console.error("Failed to load flame2 image");
       flame2Loaded = false;
     };
-
-
 
     // Cheat code function - instantly win the game
     const activateCheat = () => {
@@ -408,7 +408,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
         setIsPaused((prev) => !prev);
         return;
       }
-      
+
       // Track cheat code sequence: "orgg"
       if (!isPausedRef.current && !isGameOverRef.current) {
         const key = e.key.toLowerCase();
@@ -427,10 +427,10 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
           }
         }
       }
-      
+
       // Don't process game controls when paused
       if (isPausedRef.current) return;
-      
+
       gameState.keys[e.key.toLowerCase()] = true;
       if (e.key === " ") {
         e.preventDefault();
@@ -448,7 +448,8 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
     // Shoot function
     const shoot = () => {
       const now = Date.now();
-      if (now - gameState.lastShot > 250) { // Fire rate limit
+      if (now - gameState.lastShot > 250) {
+        // Fire rate limit
         const startX = gameState.player.x + gameState.player.width - 20;
         const startY = gameState.player.y + gameState.player.height * 0.28 - 5;
         gameState.bullets.push({
@@ -463,17 +464,17 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
           hasHit: false,
         });
         gameState.lastShot = now;
-        
+
         // Trigger recoil animation
         gameState.recoilProgress = 0; // Start animation from beginning
         gameState.recoilMaxOffsetX = -20; // Move back 20 pixels
         gameState.recoilMaxOffsetY = -8; // Move up 8 pixels
-        
+
         // Play random shoot sound based on probability
         // 80% chance for sound 1, 20% chance for sound 2
         const randomValue = Math.random() * 100;
         let selectedShootSound: HTMLAudioElement | null = null;
-        
+
         if (randomValue < 80) {
           // 0-80: Sound 1 (80%)
           selectedShootSound = shootSound1Ref.current;
@@ -481,7 +482,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
           // 80-100: Sound 2 (20%)
           selectedShootSound = shootSound2Ref.current;
         }
-        
+
         // Play the selected sound
         if (selectedShootSound) {
           selectedShootSound.currentTime = 0; // Reset to start
@@ -496,25 +497,27 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
     // Spawn enemies (100 total over 85 seconds = 1 every 0.85 seconds)
     const spawnEnemy = () => {
       if (gameState.enemiesSpawned >= gameState.maxEnemies) return;
-      
+
       const now = Date.now();
-      if (now - gameState.lastEnemySpawn > 850) { // Spawn every 0.85 seconds
+      if (now - gameState.lastEnemySpawn > 850) {
+        // Spawn every 0.85 seconds
         // Find a Y position that doesn't conflict with existing enemies
         let yPos = 0;
         let attempts = 0;
         let validPosition = false;
         const enemyHeight = 35;
         const minVerticalGap = 50; // Minimum vertical distance between enemies
-        
+
         while (!validPosition && attempts < 50) {
           // Add margins to keep enemies away from top and bottom edges
           const topMargin = 50; // Don't spawn in top 50 pixels
           const bottomMargin = 150; // Don't spawn in bottom 150 pixels (keep away from bottom)
-          const spawnableHeight = canvas.height - topMargin - bottomMargin - enemyHeight;
-          
+          const spawnableHeight =
+            canvas.height - topMargin - bottomMargin - enemyHeight;
+
           yPos = topMargin + Math.random() * spawnableHeight;
           validPosition = true;
-          
+
           // Check if this Y position conflicts with any active enemy
           for (const enemy of gameState.enemies) {
             if (enemy.active) {
@@ -526,34 +529,38 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
               }
             }
           }
-          
+
           attempts++;
         }
-        
+
         // Only spawn if we found a valid position
         if (validPosition) {
           // Randomly select one of the available dog types, but avoid the last spawned dog
           let randomImageIndex = Math.floor(Math.random() * enemyTypes.length);
-          
+
           // Try to avoid spawning the same dog consecutively (reroll up to 3 times)
           let rerollAttempts = 0;
-          while (randomImageIndex === gameState.lastSpawnedDogIndex && rerollAttempts < 3 && enemyTypes.length > 1) {
+          while (
+            randomImageIndex === gameState.lastSpawnedDogIndex &&
+            rerollAttempts < 3 &&
+            enemyTypes.length > 1
+          ) {
             randomImageIndex = Math.floor(Math.random() * enemyTypes.length);
             rerollAttempts++;
           }
-          
+
           // Update last spawned dog
           gameState.lastSpawnedDogIndex = randomImageIndex;
-          
+
           // Calculate width and height maintaining aspect ratio
           const aspectRatio = enemyBodyAspectRatios[randomImageIndex];
           const enemyWidth = enemyTargetHeight * aspectRatio;
           const enemyHeight = enemyTargetHeight;
-          
+
           // Create chaotic, random vertical movement patterns
           const movementType = Math.random();
           let maxUp, maxDown, vSpeed, initialDirection, changeChance;
-          
+
           if (movementType < 0.15) {
             // Only moves down - slow drift
             maxUp = 0;
@@ -598,7 +605,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
             initialDirection = Math.random() > 0.5 ? 1 : -1;
             changeChance = 0.008 + Math.random() * 0.008; // 0.8-1.6% chance
           }
-          
+
           gameState.enemies.push({
             x: canvas.width,
             y: yPos,
@@ -627,56 +634,50 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
     // Draw player (8-bit style flying character)
     const drawPlayer = () => {
       const p = gameState.player;
-      
+
       // Draw jetpack flames behind the player
       // Alternate between flame1 and flame2 every 16 frames for flickering effect
       const useFlame1 = Math.floor(gameState.animationFrame / 16) % 2 === 0;
       const flameImg = useFlame1 ? flame1Img : flame2Img;
       const flameLoaded = useFlame1 ? flame1Loaded : flame2Loaded;
-      const flameAspectRatio = useFlame1 ? flame1AspectRatio : flame2AspectRatio;
-      
+      const flameAspectRatio = useFlame1
+        ? flame1AspectRatio
+        : flame2AspectRatio;
+
       if (flameLoaded && flameImg.complete && flameImg.naturalWidth > 0) {
         // Position flames behind the jetpack
         // Scale to appropriate size (height around 60-70px)
         const flameHeight = 65;
         const flameWidth = flameHeight * flameAspectRatio;
-        
+
         // Position flame behind the character's back/jetpack area
         const flameX = p.x + flameWidth * 0.05; // Behind the player (even more to the right)
         const flameY = p.y + p.height * 0.35; // Centered on jetpack area
-        
+
         // Set opacity: 90% for big flame (flame1), 70% for small flame (flame2)
         ctx.globalAlpha = useFlame1 ? 0.9 : 0.7;
-        
-        ctx.drawImage(
-          flameImg,
-          flameX,
-          flameY,
-          flameWidth,
-          flameHeight
-        );
-        
+
+        ctx.drawImage(flameImg, flameX, flameY, flameWidth, flameHeight);
+
         // Reset opacity
         ctx.globalAlpha = 1;
       }
-      
-      if (playerImageLoaded && playerImg.complete && playerImg.naturalWidth > 0) {
+
+      if (
+        playerImageLoaded &&
+        playerImg.complete &&
+        playerImg.naturalWidth > 0
+      ) {
         // Draw body (50% bigger: 120x180)
-        ctx.drawImage(
-          playerImg,
-          p.x,
-          p.y,
-          p.width,
-          p.height
-        );
-        
+        ctx.drawImage(playerImg, p.x, p.y, p.width, p.height);
+
         // Draw face on top of body
         // Choose face based on timers (celebration or angry), otherwise normal
         let faceImg = faceNormalImg;
         let faceLoaded = faceNormalLoaded;
         let faceOriginalWidth = faceNormalWidth;
         let faceOriginalHeight = faceNormalHeight;
-        
+
         // Priority: celebration face (4 hits), angry face (miss), normal (default)
         if (gameState.celebrationTimer > 0 && faceCelebrationLoaded) {
           faceImg = faceCelebrationImg; // Celebration face for hitting 4 in a row
@@ -689,23 +690,23 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
           faceOriginalWidth = faceAngryWidth;
           faceOriginalHeight = faceAngryHeight;
         }
-        
-        if (faceLoaded && faceOriginalWidth > 0 && faceOriginalHeight > 0 && faceImg.complete && faceImg.naturalWidth > 0) {
+
+        if (
+          faceLoaded &&
+          faceOriginalWidth > 0 &&
+          faceOriginalHeight > 0 &&
+          faceImg.complete &&
+          faceImg.naturalWidth > 0
+        ) {
           // Scale face to 62.4px height while maintaining aspect ratio
           const targetHeight = 62.4;
           const aspectRatio = faceOriginalWidth / faceOriginalHeight;
           const faceHeight = targetHeight;
           const faceWidth = faceHeight * aspectRatio;
-          
+
           const faceX = p.x + (p.width - faceWidth) / 2 - 8; // Center the face horizontally, then move 8px left
           const faceY = p.y - faceHeight * 0.5 - 2; // Move face up higher, then 2px more
-          ctx.drawImage(
-            faceImg,
-            faceX,
-            faceY,
-            faceWidth,
-            faceHeight
-          );
+          ctx.drawImage(faceImg, faceX, faceY, faceWidth, faceHeight);
         }
       } else {
         // Fallback: Draw simple rectangle if image not loaded
@@ -719,32 +720,34 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
       gameState.bullets.forEach((bullet) => {
         if (bullet.active) {
           // Fade out effect based on lifetime
-          const fadeRatio = 1 - (bullet.lifetime / bullet.maxLifetime);
+          const fadeRatio = 1 - bullet.lifetime / bullet.maxLifetime;
           const opacity = fadeRatio * 0.9 + 0.1; // 0.1 to 1.0
-          
+
           // Draw horizontal lightning bolt extending to right edge
           ctx.strokeStyle = `rgba(96, 165, 250, ${opacity})`;
           ctx.lineWidth = 4;
           ctx.shadowBlur = 20 * fadeRatio;
           ctx.shadowColor = "#3B82F6";
-          
+
           // Create jagged lightning path across the entire width
           ctx.beginPath();
           ctx.moveTo(bullet.x, bullet.y);
-          
+
           const segments = Math.floor(bullet.width / 40) + 3; // More segments for longer bolts
           const segmentLength = bullet.width / segments;
           let currentX = bullet.x;
-          
+
           for (let i = 0; i < segments; i++) {
             currentX += segmentLength;
             // Random vertical offset for zigzag effect
-            const offsetY = (Math.random() - 0.5) * 12 + Math.sin((bullet.lifetime + i) * 0.5) * 6;
+            const offsetY =
+              (Math.random() - 0.5) * 12 +
+              Math.sin((bullet.lifetime + i) * 0.5) * 6;
             ctx.lineTo(currentX, bullet.y + offsetY);
           }
-          
+
           ctx.stroke();
-          
+
           // Draw bright core
           ctx.strokeStyle = `rgba(191, 219, 254, ${opacity})`;
           ctx.lineWidth = 2;
@@ -755,11 +758,13 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
           currentX = bullet.x;
           for (let i = 0; i < segments; i++) {
             currentX += segmentLength;
-            const offsetY = (Math.random() - 0.5) * 8 + Math.sin((bullet.lifetime + i) * 0.5) * 4;
+            const offsetY =
+              (Math.random() - 0.5) * 8 +
+              Math.sin((bullet.lifetime + i) * 0.5) * 4;
             ctx.lineTo(currentX, bullet.y + offsetY);
           }
           ctx.stroke();
-          
+
           // Add occasional bright flashes
           if (bullet.lifetime < 3 && Math.random() > 0.5) {
             ctx.strokeStyle = `rgba(255, 255, 255, ${opacity * 0.6})`;
@@ -775,7 +780,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
             }
             ctx.stroke();
           }
-          
+
           // Reset shadow
           ctx.shadowBlur = 0;
         }
@@ -790,11 +795,11 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
           const bodyIsLoaded = enemyBodyImagesLoaded[enemy.imageIndex];
           const enemySkeletonImg = enemySkeletonImages[enemy.imageIndex];
           const skeletonIsLoaded = enemySkeletonImagesLoaded[enemy.imageIndex];
-          
+
           // Death animation logic
           if (enemy.isDying && enemy.deathFrame !== undefined) {
             const deathDuration = 135; // Death animation lasts 135 frames (~2250ms) - 50% slower
-            
+
             // Flash skeleton three times (150ms each ≈ 9 frames), then show normal sprite fading out slowly
             // Frames 0-8: skeleton (first flash - 150ms)
             // Frames 9-17: dog
@@ -803,8 +808,11 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
             // Frames 36-44: skeleton (third flash - 150ms)
             // Frames 45-134: dog (fading out slowly over ~1500ms)
             const frame = enemy.deathFrame;
-            const showSkeleton = (frame >= 0 && frame <= 8) || (frame >= 18 && frame <= 26) || (frame >= 36 && frame <= 44);
-            
+            const showSkeleton =
+              (frame >= 0 && frame <= 8) ||
+              (frame >= 18 && frame <= 26) ||
+              (frame >= 36 && frame <= 44);
+
             // Only apply fade after the skeleton flashes (frame 45+)
             let opacity = 1;
             if (frame >= 45) {
@@ -813,11 +821,16 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
               const fadeProgress = (frame - fadeStart) / fadeDuration;
               opacity = 1 - fadeProgress; // Fade from 1 to 0
             }
-            
+
             ctx.save();
             ctx.globalAlpha = opacity;
-            
-            if (showSkeleton && skeletonIsLoaded && enemySkeletonImg.complete && enemySkeletonImg.naturalWidth > 0) {
+
+            if (
+              showSkeleton &&
+              skeletonIsLoaded &&
+              enemySkeletonImg.complete &&
+              enemySkeletonImg.naturalWidth > 0
+            ) {
               // Draw skeleton sprite specific to this enemy type
               ctx.drawImage(
                 enemySkeletonImg,
@@ -826,7 +839,12 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
                 enemy.width,
                 enemy.height
               );
-            } else if (bodyIsLoaded && enemyBodyImg && enemyBodyImg.complete && enemyBodyImg.naturalWidth > 0) {
+            } else if (
+              bodyIsLoaded &&
+              enemyBodyImg &&
+              enemyBodyImg.complete &&
+              enemyBodyImg.naturalWidth > 0
+            ) {
               // Draw original dog sprite
               ctx.drawImage(
                 enemyBodyImg,
@@ -836,11 +854,16 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
                 enemy.height
               );
             }
-            
+
             ctx.restore();
           } else if (enemy.active) {
             // Normal enemy rendering
-            if (bodyIsLoaded && enemyBodyImg && enemyBodyImg.complete && enemyBodyImg.naturalWidth > 0) {
+            if (
+              bodyIsLoaded &&
+              enemyBodyImg &&
+              enemyBodyImg.complete &&
+              enemyBodyImg.naturalWidth > 0
+            ) {
               // Draw the dog sprite
               ctx.drawImage(
                 enemyBodyImg,
@@ -863,13 +886,13 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
     const checkCollisions = () => {
       gameState.bullets.forEach((bullet) => {
         if (!bullet.active || bullet.hasHit) return;
-        
+
         gameState.enemies.forEach((enemy) => {
           if (!enemy.active || enemy.isDying) return;
-          
+
           // Only allow hits on enemies that are fully visible (not still spawning at right edge)
           const enemyIsVisible = enemy.x + enemy.width < canvas.width;
-          
+
           if (
             enemyIsVisible &&
             bullet.x < enemy.x + enemy.width &&
@@ -883,15 +906,21 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
             enemy.deathFrame = 0;
             bullet.hasHit = true; // Mark that this bullet hit something
             gameState.consecutiveHits++; // Increment hit streak
-            
+
             // Trigger celebration face and supporter if player hits 5 in a row
             if (gameState.consecutiveHits === 5) {
               gameState.celebrationTimer = 120; // Show celebration face for 120 frames (~2 seconds)
               gameState.consecutiveHits = 0; // Reset counter so player can get another 5-hit streak
-              
+
               // Show supporter with positive message
-              const randomImage = supporterImages[Math.floor(Math.random() * supporterImages.length)];
-              const randomText = positiveMessages[Math.floor(Math.random() * positiveMessages.length)];
+              const randomImage =
+                supporterImages[
+                  Math.floor(Math.random() * supporterImages.length)
+                ];
+              const randomText =
+                positiveMessages[
+                  Math.floor(Math.random() * positiveMessages.length)
+                ];
               setSupporterDisplay({
                 visible: true,
                 fadeState: "in",
@@ -900,12 +929,12 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
               });
               supporterTimerRef.current = 0; // Reset timer
             }
-            
+
             // Play random hit sound based on probability
             // 30% chance for sound 1, 60% chance for sound 2, 10% chance for sound 3
             const randomValue = Math.random() * 100;
             let selectedSound: HTMLAudioElement | null = null;
-            
+
             if (randomValue < 30) {
               // 0-30: Sound 1 (30%)
               selectedSound = hitSound1Ref.current;
@@ -916,7 +945,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
               // 90-100: Sound 3 (10%)
               selectedSound = hitSound3Ref.current;
             }
-            
+
             // Play the selected sound
             if (selectedSound) {
               selectedSound.currentTime = 0; // Reset to start
@@ -925,7 +954,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
                 console.log("Hit sound playback failed:", error);
               });
             }
-            
+
             setScore((prev) => prev + 1); // Count each enemy hit
           }
         });
@@ -935,19 +964,25 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
     // Update game state
     const update = () => {
       const p = gameState.player;
-      
+
       // Track if player is actively moving
       const isMovingUp = gameState.keys["w"] || gameState.keys["arrowup"];
       const isMovingDown = gameState.keys["s"] || gameState.keys["arrowdown"];
-      
+
       // Player movement with inertia for both directions
       if (isMovingUp) {
         // Accelerate upward
-        gameState.velocityY = Math.max(gameState.velocityY - 0.7, -p.speed * 1.5);
+        gameState.velocityY = Math.max(
+          gameState.velocityY - 0.7,
+          -p.speed * 1.5
+        );
         gameState.isPlayerMoving = true;
       } else if (isMovingDown) {
         // Accelerate downward (with inertia)
-        gameState.velocityY = Math.min(gameState.velocityY + 0.7, p.speed * 1.5);
+        gameState.velocityY = Math.min(
+          gameState.velocityY + 0.7,
+          p.speed * 1.5
+        );
         gameState.isPlayerMoving = true;
       } else {
         // Apply friction/deceleration when no keys pressed
@@ -959,44 +994,48 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
           gameState.isPlayerMoving = false;
         }
       }
-      
+
       // Apply velocity to position
       if (gameState.isPlayerMoving) {
         p.y += gameState.velocityY;
         // Clamp position - allow moving slightly outside screen vertically
-        p.y = Math.max(-p.height * 0.3, Math.min(canvas.height - p.height * 0.4, p.y));
+        p.y = Math.max(
+          -p.height * 0.3,
+          Math.min(canvas.height - p.height * 0.4, p.y)
+        );
         gameState.basePlayerY = p.y; // Update base position when moving
       }
-      
+
       // Gentle floating animation when stationary
       if (!gameState.isPlayerMoving) {
         const floatOffset = Math.sin(gameState.animationFrame * 0.03) * 3; // 3 pixels amplitude, slow speed
         p.y = gameState.basePlayerY + floatOffset;
       }
-      
+
       // Handle recoil animation with smooth easing (no overshoot)
       if (gameState.recoilProgress < 1) {
         // Advance animation progress (54 frames = 900ms at 60fps)
         gameState.recoilProgress += 1 / 54; // Increment by 1/54 each frame for 900ms duration
-        
+
         if (gameState.recoilProgress >= 1) {
           gameState.recoilProgress = 1; // Clamp to 1 when done
         }
-        
+
         // Easing function: smooth out and back with no overshoot
         // Using ease-out-cubic for the return: fast start, slow end
         const t = gameState.recoilProgress;
-        const easeProgress = t < 0.5
-          ? 2 * t * t // Ease out in first half (going back)
-          : 1 - Math.pow(-2 * t + 2, 2) / 2; // Ease in during second half (returning)
-        
+        const easeProgress =
+          t < 0.5
+            ? 2 * t * t // Ease out in first half (going back)
+            : 1 - Math.pow(-2 * t + 2, 2) / 2; // Ease in during second half (returning)
+
         // Calculate current offsets based on eased progress
         // Progress goes 0 -> 1 -> 0 (out and back)
-        const offsetMultiplier = t < 0.5 ? easeProgress : (1 - easeProgress);
-        
+        const offsetMultiplier = t < 0.5 ? easeProgress : 1 - easeProgress;
+
         const recoilOffsetX = gameState.recoilMaxOffsetX * offsetMultiplier;
         const recoilOffsetY = gameState.recoilMaxOffsetY * offsetMultiplier;
-        
+
         // Apply recoil to player position
         p.x = gameState.basePlayerX + recoilOffsetX;
         p.y += recoilOffsetY; // Add to Y (applied after floating/movement)
@@ -1018,26 +1057,29 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
         if (enemy.isDying) {
           if (enemy.deathFrame !== undefined) {
             enemy.deathFrame++;
-            
+
             // Make the enemy fall downward while dying
             const fallSpeed = 2.5; // Pixels per frame falling speed
             enemy.y += fallSpeed;
-            
+
             // Optionally slow down horizontal movement while dying
             enemy.x -= enemy.speed * 0.3; // 30% of normal speed
-            
+
             // Remove enemy after death animation completes (135 frames) OR if it falls off screen
-            if (enemy.deathFrame >= 135 || enemy.y > canvas.height + enemy.height) {
+            if (
+              enemy.deathFrame >= 135 ||
+              enemy.y > canvas.height + enemy.height
+            ) {
               return false;
             }
           }
           return true;
         }
-        
+
         // Move active enemies
         if (!enemy.active) return false;
         enemy.x -= enemy.speed;
-        
+
         // Check if enemy escaped (went off left side while still active) - INSTANT LOSS!
         if (enemy.active && enemy.x + enemy.width <= 0) {
           // Enemy escaped without being killed - game over!
@@ -1045,27 +1087,33 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
           setGameWon(false);
           return false; // Remove the enemy
         }
-        
+
         // Check if enemy should avoid the player
         const playerCenterY = p.y + p.height / 2;
         const enemyCenterY = enemy.y + enemy.height / 2;
         const verticalDistance = Math.abs(enemyCenterY - playerCenterY);
         const avoidanceZone = 120; // If within 120 pixels vertically, try to avoid
         const isAvoiding = verticalDistance < avoidanceZone;
-        
+
         let currentVerticalSpeed = enemy.verticalSpeed;
-        
+
         // First, handle normal movement patterns (boundaries and random changes)
         if (!isAvoiding) {
           // Check if we've hit the limits and need to reverse direction
-          if (enemy.verticalDirection > 0 && enemy.currentOffset >= enemy.maxUpOffset) {
+          if (
+            enemy.verticalDirection > 0 &&
+            enemy.currentOffset >= enemy.maxUpOffset
+          ) {
             enemy.verticalDirection = -1;
             enemy.currentOffset = enemy.maxUpOffset; // Clamp to max
-          } else if (enemy.verticalDirection < 0 && enemy.currentOffset <= -enemy.maxDownOffset) {
+          } else if (
+            enemy.verticalDirection < 0 &&
+            enemy.currentOffset <= -enemy.maxDownOffset
+          ) {
             enemy.verticalDirection = 1;
             enemy.currentOffset = -enemy.maxDownOffset; // Clamp to max
           }
-          
+
           // Random chance to change direction (creates erratic movement)
           if (Math.random() < enemy.changeDirectionChance) {
             enemy.verticalDirection *= -1;
@@ -1080,27 +1128,33 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
             // Enemy is above player (lower Y), move UP (decrease Y, direction = -1)
             enemy.verticalDirection = -1;
           }
-          
+
           // MUCH FASTER vertical speed when avoiding!
           // The closer they are, the faster they move
-          const proximityRatio = 1 - (verticalDistance / avoidanceZone);
+          const proximityRatio = 1 - verticalDistance / avoidanceZone;
           currentVerticalSpeed = 2.5 + proximityRatio * 2.5; // 2.5-5 pixels per frame (10-20x faster!)
-          
+
           // Still respect boundaries, but with avoidance priority
           // If we hit a boundary while trying to avoid, clamp but keep trying to avoid
-          if (enemy.verticalDirection > 0 && enemy.currentOffset >= enemy.maxUpOffset) {
+          if (
+            enemy.verticalDirection > 0 &&
+            enemy.currentOffset >= enemy.maxUpOffset
+          ) {
             enemy.currentOffset = enemy.maxUpOffset; // Clamp but don't reverse
-          } else if (enemy.verticalDirection < 0 && enemy.currentOffset <= -enemy.maxDownOffset) {
+          } else if (
+            enemy.verticalDirection < 0 &&
+            enemy.currentOffset <= -enemy.maxDownOffset
+          ) {
             enemy.currentOffset = -enemy.maxDownOffset; // Clamp but don't reverse
           }
         }
-        
+
         // Apply vertical movement (use boosted speed when avoiding)
         enemy.currentOffset += enemy.verticalDirection * currentVerticalSpeed;
-        
+
         // Apply the offset to Y position
         enemy.y = enemy.baseY + enemy.currentOffset;
-        
+
         return enemy.x + enemy.width > 0;
       });
 
@@ -1116,13 +1170,20 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
           if (!bullet.hasHit) {
             gameState.consecutiveHits = 0; // Always reset consecutive hits on miss
             gameState.missTimer = 60; // Always show angry face for 60 frames (~1 second)
-            
+
             // Only show supporter if cooldown has passed (5 seconds = 300 frames)
-            const framesSinceLastNegative = gameState.animationFrame - lastNegativeSupporterFrame.current;
+            const framesSinceLastNegative =
+              gameState.animationFrame - lastNegativeSupporterFrame.current;
             if (framesSinceLastNegative >= 300) {
               // Show supporter with negative message
-              const randomImage = supporterImages[Math.floor(Math.random() * supporterImages.length)];
-              const randomText = negativeMessages[Math.floor(Math.random() * negativeMessages.length)];
+              const randomImage =
+                supporterImages[
+                  Math.floor(Math.random() * supporterImages.length)
+                ];
+              const randomText =
+                negativeMessages[
+                  Math.floor(Math.random() * negativeMessages.length)
+                ];
               setSupporterDisplay({
                 visible: true,
                 fadeState: "in",
@@ -1137,12 +1198,12 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
         }
         return true;
       });
-      
+
       // Decrement miss timer
       if (gameState.missTimer > 0) {
         gameState.missTimer--;
       }
-      
+
       // Decrement celebration timer
       if (gameState.celebrationTimer > 0) {
         gameState.celebrationTimer--;
@@ -1150,18 +1211,22 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
 
       spawnEnemy();
       gameState.animationFrame++;
-      
+
       // Update supporter animation
       if (supporterDisplayRef.current && supporterDisplayRef.current.visible) {
         supporterTimerRef.current++;
-        
+
         // Fade in: 0-18 frames (300ms)
         // Visible: 18-138 frames (2000ms at full opacity)
         // Fade out: 138-210 frames (1200ms) - 4x longer than fade in
         if (supporterTimerRef.current === 18) {
-          setSupporterDisplay((prev) => prev ? { ...prev, fadeState: "visible" } : null);
+          setSupporterDisplay((prev) =>
+            prev ? { ...prev, fadeState: "visible" } : null
+          );
         } else if (supporterTimerRef.current === 138) {
-          setSupporterDisplay((prev) => prev ? { ...prev, fadeState: "out" } : null);
+          setSupporterDisplay((prev) =>
+            prev ? { ...prev, fadeState: "out" } : null
+          );
         } else if (supporterTimerRef.current >= 210) {
           setSupporterDisplay(null);
           supporterTimerRef.current = 0;
@@ -1174,18 +1239,17 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
       // Clear canvas
       ctx.fillStyle = "#0F172A";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
+
       // Draw tiled background image
-      if (bgImageLoaded && bgWidth > 0 && bgImage.complete && bgImage.naturalWidth > 0) {
+      if (
+        bgImageLoaded &&
+        bgWidth > 0 &&
+        bgImage.complete &&
+        bgImage.naturalWidth > 0
+      ) {
         const numTiles = Math.ceil(canvas.width / bgWidth) + 1;
         for (let i = 0; i < numTiles; i++) {
-          ctx.drawImage(
-            bgImage,
-            i * bgWidth,
-            0,
-            bgWidth,
-            canvas.height
-          );
+          ctx.drawImage(bgImage, i * bgWidth, 0, bgWidth, canvas.height);
         }
       } else {
         // Fallback: Draw stars if image not loaded yet
@@ -1219,7 +1283,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
       cancelAnimationFrame(gameLoop);
-      
+
       // Stop music when component unmounts
       if (audioRef.current) {
         audioRef.current.pause();
@@ -1246,11 +1310,11 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
     // Don't run timer when paused or game over
     if (isPausedRef.current || isGameOverRef.current) return;
     const gameState = gameStateRef.current;
-    
+
     // Check if all enemies have been spawned and processed
     const allEnemiesSpawned = gameState.enemiesSpawned >= gameState.maxEnemies;
     const allEnemiesProcessed = gameState.enemies.length === 0;
-    
+
     if (allEnemiesSpawned && allEnemiesProcessed) {
       // All dogs have passed - only win if player got all 100
       const won = score === 100;
@@ -1258,7 +1322,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
       setGameWon(won);
       return;
     }
-    
+
     if (timeLeft <= 0) {
       // Time ran out - only win if player got all 100
       const won = score === 100;
@@ -1308,17 +1372,6 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
     }
   };
 
-  const getRank = (score: number) => {
-    if (score === 100) return { rank: "S", color: "text-[#f9c600]", message: "PERFECT!" };
-    if (score >= 90) return { rank: "A", color: "text-purple-400", message: "SO CLOSE!" };
-    if (score >= 70) return { rank: "B", color: "text-blue-400", message: "GOOD EFFORT!" };
-    if (score >= 50) return { rank: "C", color: "text-green-400", message: "NOT ENOUGH!" };
-    return { rank: "D", color: "text-gray-400", message: "KEEP TRYING!" };
-  };
-
-  const rankInfo = getRank(score);
-  const percentage = Math.round((score / totalEnemies) * 100);
-
   const handleRestart = () => {
     // Reset all game state
     setScore(0);
@@ -1344,7 +1397,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
       <audio ref={audioRef} loop preload="auto">
         <source src="https://files.catbox.moe/dl702b.mp3" type="audio/mpeg" />
       </audio>
-      
+
       {/* Hit sound effects */}
       <audio ref={hitSound1Ref} preload="auto">
         <source src="https://files.catbox.moe/9q9cj2.mp3" type="audio/mpeg" />
@@ -1355,7 +1408,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
       <audio ref={hitSound3Ref} preload="auto">
         <source src="https://files.catbox.moe/xeapud.mp3" type="audio/mpeg" />
       </audio>
-      
+
       {/* Shoot sound effects */}
       <audio ref={shootSound1Ref} preload="auto">
         <source src="https://files.catbox.moe/qm4nuo.mp3" type="audio/mpeg" />
@@ -1363,43 +1416,41 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
       <audio ref={shootSound2Ref} preload="auto">
         <source src="https://files.catbox.moe/cp0rjm.mp3" type="audio/mpeg" />
       </audio>
-      
+
       {/* Canvas - Full screen */}
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0 size-full"
-      />
-      
+      <canvas ref={canvasRef} className="absolute inset-0 size-full" />
+
       {/* Supporter Display - Above background, below game elements */}
       {supporterDisplay && supporterDisplay.visible && (
-        <div 
-          className="absolute inset-0 z-[1] flex items-start justify-center pt-5 pointer-events-none"
-        >
+        <div className="absolute inset-0 z-[1] flex items-start justify-center pt-5 pointer-events-none">
           <div className="relative">
             {/* Image at 45% opacity with gradient fade at bottom - fixed height for consistency */}
-            <img 
+            <img
               src={supporterDisplay.image}
               alt="Supporter"
               className="h-[70vh] w-auto transition-opacity duration-300"
               style={{
-                opacity: supporterDisplay.fadeState === "in" 
-                  ? (supporterTimerRef.current / 18) * 0.45 
-                  : supporterDisplay.fadeState === "out"
-                  ? ((210 - supporterTimerRef.current) / 72) * 0.45
-                  : 0.45,
-                maskImage: 'linear-gradient(to top, transparent 0%, black 50%)',
-                WebkitMaskImage: 'linear-gradient(to top, transparent 0%, black 50%)',
+                opacity:
+                  supporterDisplay.fadeState === "in"
+                    ? (supporterTimerRef.current / 18) * 0.45
+                    : supporterDisplay.fadeState === "out"
+                    ? ((210 - supporterTimerRef.current) / 72) * 0.45
+                    : 0.45,
+                maskImage: "linear-gradient(to top, transparent 0%, black 50%)",
+                WebkitMaskImage:
+                  "linear-gradient(to top, transparent 0%, black 50%)",
               }}
             />
             {/* Text overlay at bottom - 90% opacity */}
-            <div 
+            <div
               className="absolute bottom-[12%] left-1/2 -translate-x-1/2 w-full px-8 transition-opacity duration-300"
               style={{
-                opacity: supporterDisplay.fadeState === "in" 
-                  ? (supporterTimerRef.current / 18) * 0.9 
-                  : supporterDisplay.fadeState === "out"
-                  ? ((210 - supporterTimerRef.current) / 72) * 0.9
-                  : 0.9
+                opacity:
+                  supporterDisplay.fadeState === "in"
+                    ? (supporterTimerRef.current / 18) * 0.9
+                    : supporterDisplay.fadeState === "out"
+                    ? ((210 - supporterTimerRef.current) / 72) * 0.9
+                    : 0.9,
               }}
             >
               <p className="font-['Pixelify_Sans:Regular',_sans-serif] text-white text-center text-[32px] drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]">
@@ -1409,11 +1460,11 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
           </div>
         </div>
       )}
-      
+
       {/* Volume Control - Top Left */}
       <div className="absolute top-4 left-4 z-10">
         <div className="bg-[#0f111c]/80 px-4 py-3 rounded-lg border-2 border-[#f9c600] flex items-center gap-3 min-w-[200px]">
-          <button 
+          <button
             onClick={toggleMute}
             className="flex-shrink-0 hover:opacity-80 transition-opacity cursor-pointer"
             aria-label={volume === 0 ? "Unmute" : "Mute"}
@@ -1436,25 +1487,35 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
           </span>
         </div>
       </div>
-      
+
       {/* Score - Top Center */}
       <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
         <div className="bg-[#0f111c]/80 px-6 py-3 rounded-lg border-2 border-[#f9c600]">
-          <span className="text-[#f9c600] mr-3 font-['Pixelify_Sans:Regular',_sans-serif]">SCORE:</span>
-          <span className="text-[#f9c600] font-['Pixelify_Sans:Regular',_sans-serif]">{score}/{totalEnemies}</span>
+          <span className="text-[#f9c600] mr-3 font-['Pixelify_Sans:Regular',_sans-serif]">
+            SCORE:
+          </span>
+          <span className="text-[#f9c600] font-['Pixelify_Sans:Regular',_sans-serif]">
+            {score}/{totalEnemies}
+          </span>
         </div>
       </div>
-      
+
       {/* Timer - Top Right */}
       <div className="absolute top-4 right-4 z-10">
         <div className="bg-[#0f111c]/80 px-6 py-3 rounded-lg border-2 border-[#f9c600]">
-          <span className="text-[#f9c600] mr-3 font-['Pixelify_Sans:Regular',_sans-serif]">TIME:</span>
-          <span className={`${timeLeft <= 10 ? "text-red-400" : "text-[#f9c600]"} font-['Pixelify_Sans:Regular',_sans-serif]`}>
+          <span className="text-[#f9c600] mr-3 font-['Pixelify_Sans:Regular',_sans-serif]">
+            TIME:
+          </span>
+          <span
+            className={`${
+              timeLeft <= 10 ? "text-red-400" : "text-[#f9c600]"
+            } font-['Pixelify_Sans:Regular',_sans-serif]`}
+          >
             {formatTime(timeLeft)}
           </span>
         </div>
       </div>
-      
+
       {/* Controls Text - Bottom Center */}
       <div className="absolute bottom-4 min-[1024px]:bottom-8 left-1/2 -translate-x-1/2 text-white/70 z-10 font-['Pixelify_Sans:Regular',_sans-serif]">
         <div className="flex items-center justify-center gap-0">
@@ -1467,12 +1528,15 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
           <span className="px-4">ESC = PAUSE</span>
         </div>
       </div>
-      
+
       {/* Pause Overlay */}
       {isPaused && (
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-gradient-to-b from-[rgba(16,18,28,0.95)] to-[#10121c] rounded-xl p-12 max-w-2xl text-center shadow-2xl">
-            <h1 className="font-['Pixelify_Sans:Regular',_sans-serif] text-yellow-400 mb-6" style={{ fontSize: '38.4px', textShadow: '4px 4px 0px #000' }}>
+            <h1
+              className="font-['Pixelify_Sans:Regular',_sans-serif] text-yellow-400 mb-6"
+              style={{ fontSize: "38.4px", textShadow: "4px 4px 0px #000" }}
+            >
               Game Paused!
             </h1>
             <p className="font-['Pixelify_Sans:Regular',_sans-serif] text-white/80 mb-12 text-[20px] min-[1400px]:text-[24px]">
@@ -1501,36 +1565,49 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
           </div>
         </div>
       )}
-      
+
       {/* Game Over Overlay */}
       {isGameOver && (
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-gradient-to-b from-[rgba(16,18,28,0.95)] to-[#10121c] rounded-xl p-12 max-w-2xl text-center shadow-2xl">
-            <h1 className="font-['Pixelify_Sans:Regular',_sans-serif] mb-6" style={{ fontSize: '48px', textShadow: '4px 4px 0px #000', color: gameWon ? '#f9c600' : '#ef4444' }}>
+            <h1
+              className="font-['Pixelify_Sans:Regular',_sans-serif] mb-6"
+              style={{
+                fontSize: "48px",
+                textShadow: "4px 4px 0px #000",
+                color: gameWon ? "#f9c600" : "#ef4444",
+              }}
+            >
               {gameWon ? "VICTORY!" : "MISSION FAILED"}
             </h1>
             {gameWon ? (
               <p className="font-['Pixelify_Sans:Regular',_sans-serif] text-white/80 mb-8 text-[20px]">
-                All 100 doggos have been neutralized and are on their way back to prison where their dangerous beliefs can't hurt anyone. Thank you for serving your country, comrade!
+                All 100 doggos have been neutralized and are on their way back
+                to prison where their dangerous beliefs can't hurt anyone. Thank
+                you for serving your country, comrade!
               </p>
             ) : (
               <>
                 {/* Score Display - only show on loss */}
                 <div className="mb-6">
                   <div className="flex items-center justify-center gap-4">
-                    <span className="font-['Pixelify_Sans:Regular',_sans-serif] text-white text-[20px]">FINAL SCORE:</span>
+                    <span className="font-['Pixelify_Sans:Regular',_sans-serif] text-white text-[20px]">
+                      FINAL SCORE:
+                    </span>
                     <div className="font-['Pixelify_Sans:Regular',_sans-serif] text-white text-[20px]">
                       {score}/{totalEnemies}
                     </div>
                   </div>
                 </div>
-                
+
                 <p className="font-['Pixelify_Sans:Regular',_sans-serif] text-white/80 mb-8 text-[20px]">
-                  One doggo got away and is spreading canine fascism as we speak. This is worse than January 6th. Your failure has caused irreparable damage to our democracy!
+                  One doggo got away and is spreading canine fascism as we
+                  speak. This is worse than January 6th. Your failure has caused
+                  irreparable damage to our democracy!
                 </p>
               </>
             )}
-            
+
             <div className="flex gap-6 justify-center">
               <button
                 onClick={handleRestart}
