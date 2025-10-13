@@ -1453,7 +1453,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
                     : 0.9,
               }}
             >
-              <p className="font-['Pixelify_Sans:Regular',_sans-serif] text-white text-center text-[32px] drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]">
+              <p className="font-['Pixelify_Sans'] text-white text-center text-[32px] drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]">
                 {supporterDisplay.text}
               </p>
             </div>
@@ -1482,7 +1482,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
             step={1}
             className="flex-1 [&_[data-slot=slider-track]]:bg-gray-600 [&_[data-slot=slider-range]]:bg-gray-400 [&_[data-slot=slider-thumb]]:bg-white [&_[data-slot=slider-thumb]]:border-white"
           />
-          <span className="text-[#f9c600] text-sm min-w-[2.5rem] text-right font-['Pixelify_Sans:Regular',_sans-serif]">
+          <span className="text-[#f9c600] text-sm min-w-[2.5rem] text-right font-['Pixelify_Sans']">
             {volume}%
           </span>
         </div>
@@ -1491,10 +1491,10 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
       {/* Score - Top Center */}
       <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
         <div className="bg-[#0f111c]/80 px-6 py-3 rounded-lg border-2 border-[#f9c600]">
-          <span className="text-[#f9c600] mr-3 font-['Pixelify_Sans:Regular',_sans-serif]">
+          <span className="text-[#f9c600] mr-3 font-['Pixelify_Sans']">
             SCORE:
           </span>
-          <span className="text-[#f9c600] font-['Pixelify_Sans:Regular',_sans-serif]">
+          <span className="text-[#f9c600] font-['Pixelify_Sans']">
             {score}/{totalEnemies}
           </span>
         </div>
@@ -1503,13 +1503,13 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
       {/* Timer - Top Right */}
       <div className="absolute top-4 right-4 z-10">
         <div className="bg-[#0f111c]/80 px-6 py-3 rounded-lg border-2 border-[#f9c600]">
-          <span className="text-[#f9c600] mr-3 font-['Pixelify_Sans:Regular',_sans-serif]">
+          <span className="text-[#f9c600] mr-3 font-['Pixelify_Sans']">
             TIME:
           </span>
           <span
             className={`${
               timeLeft <= 10 ? "text-red-400" : "text-[#f9c600]"
-            } font-['Pixelify_Sans:Regular',_sans-serif]`}
+            } font-['Pixelify_Sans']`}
           >
             {formatTime(timeLeft)}
           </span>
@@ -1517,7 +1517,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
       </div>
 
       {/* Controls Text - Bottom Center */}
-      <div className="absolute bottom-4 min-[1024px]:bottom-8 left-1/2 -translate-x-1/2 text-white/70 z-10 font-['Pixelify_Sans:Regular',_sans-serif]">
+      <div className="absolute bottom-4 min-[1024px]:bottom-8 left-1/2 -translate-x-1/2 text-white/70 z-10 font-['Pixelify_Sans']">
         <div className="flex items-center justify-center gap-0">
           <span className="px-4">W / ↑ = UP</span>
           <span className="text-white/40">|</span>
@@ -1534,12 +1534,12 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-gradient-to-b from-[rgba(16,18,28,0.95)] to-[#10121c] rounded-xl p-12 max-w-2xl text-center shadow-2xl">
             <h1
-              className="font-['Pixelify_Sans:Regular',_sans-serif] text-yellow-400 mb-6"
+              className="font-['Pixelify_Sans'] text-yellow-400 mb-6"
               style={{ fontSize: "38.4px", textShadow: "4px 4px 0px #000" }}
             >
               Game Paused!
             </h1>
-            <p className="font-['Pixelify_Sans:Regular',_sans-serif] text-white/80 mb-12 text-[20px] min-[1400px]:text-[24px]">
+            <p className="font-['Pixelify_Sans'] text-white/80 mb-12 text-[20px] min-[1400px]:text-[24px]">
               You have paused the game.
             </p>
             <div className="flex gap-6 justify-center">
@@ -1547,7 +1547,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
                 onClick={() => setIsPaused(false)}
                 className="bg-[#fbc600] box-border flex gap-[10px] items-center justify-center overflow-clip pb-[14px] pt-[11px] px-[28px] rounded-[8px] cursor-pointer hover:bg-[#e5b300] hover:-translate-y-[10px] transition-all duration-200 relative"
               >
-                <span className="font-['Pixelify_Sans:Regular',_sans-serif] font-normal leading-[normal] text-[#0f111c] text-[28px] text-center text-nowrap whitespace-pre">
+                <span className="font-['Pixelify_Sans'] font-normal leading-[normal] text-[#0f111c] text-[28px] text-center text-nowrap whitespace-pre">
                   Continue
                 </span>
                 <div className="absolute inset-0 pointer-events-none shadow-[0px_-6px_0px_0px_inset_rgba(0,0,0,0.1)]" />
@@ -1556,7 +1556,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
                 onClick={onQuit}
                 className="bg-[#dc2626] box-border flex gap-[10px] items-center justify-center overflow-clip pb-[14px] pt-[11px] px-[28px] rounded-[8px] cursor-pointer hover:bg-[#b91c1c] hover:-translate-y-[10px] transition-all duration-200 relative"
               >
-                <span className="font-['Pixelify_Sans:Regular',_sans-serif] font-normal leading-[normal] text-white text-[28px] text-center text-nowrap whitespace-pre">
+                <span className="font-['Pixelify_Sans'] font-normal leading-[normal] text-white text-[28px] text-center text-nowrap whitespace-pre">
                   Quit
                 </span>
                 <div className="absolute inset-0 pointer-events-none shadow-[0px_-6px_0px_0px_inset_rgba(0,0,0,0.1)]" />
@@ -1571,7 +1571,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-gradient-to-b from-[rgba(16,18,28,0.95)] to-[#10121c] rounded-xl p-12 max-w-2xl text-center shadow-2xl">
             <h1
-              className="font-['Pixelify_Sans:Regular',_sans-serif] mb-6"
+              className="font-['Pixelify_Sans'] mb-6"
               style={{
                 fontSize: "48px",
                 textShadow: "4px 4px 0px #000",
@@ -1581,7 +1581,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
               {gameWon ? "VICTORY!" : "MISSION FAILED"}
             </h1>
             {gameWon ? (
-              <p className="font-['Pixelify_Sans:Regular',_sans-serif] text-white/80 mb-8 text-[20px]">
+              <p className="font-['Pixelify_Sans'] text-white/80 mb-8 text-[20px]">
                 All 100 doggos have been neutralized and are on their way back
                 to prison where their dangerous beliefs can't hurt anyone. Thank
                 you for serving your country, comrade!
@@ -1591,16 +1591,16 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
                 {/* Score Display - only show on loss */}
                 <div className="mb-6">
                   <div className="flex items-center justify-center gap-4">
-                    <span className="font-['Pixelify_Sans:Regular',_sans-serif] text-white text-[20px]">
+                    <span className="font-['Pixelify_Sans'] text-white text-[20px]">
                       FINAL SCORE:
                     </span>
-                    <div className="font-['Pixelify_Sans:Regular',_sans-serif] text-white text-[20px]">
+                    <div className="font-['Pixelify_Sans'] text-white text-[20px]">
                       {score}/{totalEnemies}
                     </div>
                   </div>
                 </div>
 
-                <p className="font-['Pixelify_Sans:Regular',_sans-serif] text-white/80 mb-8 text-[20px]">
+                <p className="font-['Pixelify_Sans'] text-white/80 mb-8 text-[20px]">
                   One doggo got away and is spreading canine fascism as we
                   speak. This is worse than January 6th. Your failure has caused
                   irreparable damage to our democracy!
@@ -1613,7 +1613,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
                 onClick={handleRestart}
                 className="bg-[#fbc600] box-border flex gap-[10px] items-center justify-center overflow-clip pb-[14px] pt-[11px] px-[28px] rounded-[8px] cursor-pointer hover:bg-[#e5b300] hover:-translate-y-[10px] transition-all duration-200 relative"
               >
-                <span className="font-['Pixelify_Sans:Regular',_sans-serif] font-normal leading-[normal] text-[#0f111c] text-[28px] text-center text-nowrap whitespace-pre">
+                <span className="font-['Pixelify_Sans'] font-normal leading-[normal] text-[#0f111c] text-[28px] text-center text-nowrap whitespace-pre">
                   {gameWon ? "Play Again" : "Try Again"}
                 </span>
                 <div className="absolute inset-0 pointer-events-none shadow-[0px_-6px_0px_0px_inset_rgba(0,0,0,0.1)]" />
@@ -1622,7 +1622,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
                 onClick={onQuit}
                 className="bg-[#dc2626] box-border flex gap-[10px] items-center justify-center overflow-clip pb-[14px] pt-[11px] px-[28px] rounded-[8px] cursor-pointer hover:bg-[#b91c1c] hover:-translate-y-[10px] transition-all duration-200 relative"
               >
-                <span className="font-['Pixelify_Sans:Regular',_sans-serif] font-normal leading-[normal] text-white text-[28px] text-center text-nowrap whitespace-pre">
+                <span className="font-['Pixelify_Sans'] font-normal leading-[normal] text-white text-[28px] text-center text-nowrap whitespace-pre">
                   Quit
                 </span>
                 <div className="absolute inset-0 pointer-events-none shadow-[0px_-6px_0px_0px_inset_rgba(0,0,0,0.1)]" />
