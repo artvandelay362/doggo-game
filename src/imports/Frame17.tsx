@@ -64,7 +64,7 @@ function Frame20({ onStart }: Frame20Props) {
           crimes, like: misgendering, not being pro-immigration, and not liking
           Taylor Swift.
         </p>
-        <p className="mb-[18px] min-[1400px]:mb-[24px]">{`If they are not stopped, these Doggos will roam free and spread facism all over the world. Your mission is to use your zap gun to non-lethally neutralize them. `}</p>
+        <p className="mb-[18px] min-[1400px]:mb-[24px]">{`If they are not stopped, these Doggos will roam free and spread fascism all over the world. Your mission is to use your zap gun to non-lethally neutralize them. `}</p>
         <p>
           The right comrade at the right time can make all the difference in the
           world. Are you ready?
