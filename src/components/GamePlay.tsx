@@ -135,7 +135,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
   const supporterTimerRef = useRef(0); // Track supporter animation timer
   const lastNegativeSupporterFrame = useRef(-999); // Track when last negative supporter was shown (initialize to allow first trigger)
   const gameStateRef = useRef({
-    player: { x: 50, y: 0, width: 156, height: 234, speed: 2.4 },
+    player: { x: 50, y: 0, width: 156, height: 234, speed: 2.0 },
     bullets: [] as Bullet[],
     enemies: [] as Enemy[],
     keys: {} as Record<string, boolean>,
@@ -448,7 +448,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
     // Shoot function
     const shoot = () => {
       const now = Date.now();
-      if (now - gameState.lastShot > 250) {
+      if (now - gameState.lastShot > 300) {
         // Fire rate limit
         const startX = gameState.player.x + gameState.player.width - 20;
         const startY = gameState.player.y + gameState.player.height * 0.28 - 5;
@@ -561,43 +561,43 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
           const movementType = Math.random();
           let maxUp, maxDown, vSpeed, initialDirection, changeChance;
 
-          if (movementType < 0.15) {
-            // Only moves down - slow drift
+          if (movementType < 0.05) {
+            // Only moves down - slow drift (5% chance)
             maxUp = 0;
             maxDown = 40 + Math.random() * 60; // 40-100 pixels down
             vSpeed = 0.1 + Math.random() * 0.2; // 0.1-0.3 pixels per frame (slow)
             initialDirection = -1;
             changeChance = 0.001; // Very rarely changes (stays going down)
-          } else if (movementType < 0.3) {
-            // Only moves up - slow rise
+          } else if (movementType < 0.1) {
+            // Only moves up - slow rise (5% chance)
             maxUp = 40 + Math.random() * 60; // 40-100 pixels up
             maxDown = 0;
             vSpeed = 0.1 + Math.random() * 0.2;
             initialDirection = 1;
             changeChance = 0.001;
-          } else if (movementType < 0.5) {
-            // Big up, small down (like 50% up, 10% down)
+          } else if (movementType < 0.3) {
+            // Big up, small down (like 50% up, 10% down) (20% chance)
             maxUp = 60 + Math.random() * 80; // 60-140 pixels up
             maxDown = 5 + Math.random() * 15; // 5-20 pixels down
             vSpeed = 0.15 + Math.random() * 0.25; // 0.15-0.4 pixels per frame
             initialDirection = Math.random() > 0.5 ? 1 : -1;
             changeChance = 0.008 + Math.random() * 0.008; // 0.8-1.6% chance per frame (once per ~60-125 frames)
-          } else if (movementType < 0.7) {
-            // Small up, big down
+          } else if (movementType < 0.5) {
+            // Small up, big down (20% chance)
             maxUp = 5 + Math.random() * 15; // 5-20 pixels up
             maxDown = 60 + Math.random() * 80; // 60-140 pixels down
             vSpeed = 0.15 + Math.random() * 0.25;
             initialDirection = Math.random() > 0.5 ? 1 : -1;
             changeChance = 0.008 + Math.random() * 0.008;
-          } else if (movementType < 0.85) {
-            // Erratic movement - changes direction but not too frequently
+          } else if (movementType < 0.75) {
+            // Erratic movement - changes direction but not too frequently (25% chance)
             maxUp = 20 + Math.random() * 50;
             maxDown = 20 + Math.random() * 50;
             vSpeed = 0.2 + Math.random() * 0.3; // 0.2-0.5 pixels per frame
             initialDirection = Math.random() > 0.5 ? 1 : -1;
             changeChance = 0.012 + Math.random() * 0.004; // 1.2-1.6% chance - max once per second
           } else {
-            // Balanced bobbing
+            // Balanced bobbing (25% chance)
             const range = 30 + Math.random() * 40;
             maxUp = range;
             maxDown = range;
@@ -611,7 +611,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
             y: yPos,
             width: enemyWidth,
             height: enemyHeight,
-            speed: 1.2 + Math.random() * 2.8,
+            speed: 1.5 + Math.random() * 3.2,
             active: true,
             imageIndex: randomImageIndex,
             baseY: yPos,
@@ -723,62 +723,125 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
           const fadeRatio = 1 - bullet.lifetime / bullet.maxLifetime;
           const opacity = fadeRatio * 0.9 + 0.1; // 0.1 to 1.0
 
-          // Draw horizontal lightning bolt extending to right edge
-          ctx.strokeStyle = `rgba(96, 165, 250, ${opacity})`;
-          ctx.lineWidth = 4;
+          const segments = Math.floor(bullet.width / 40) + 3; // More segments for longer bolts
+          const segmentLength = bullet.width / segments;
+          const taperDistancePx = 100; // Last 100 pixels taper to a point
+
+          // Draw outer glow layer with tapering and independent randomness
           ctx.shadowBlur = 20 * fadeRatio;
           ctx.shadowColor = "#3B82F6";
 
-          // Create jagged lightning path across the entire width
-          ctx.beginPath();
-          ctx.moveTo(bullet.x, bullet.y);
-
-          const segments = Math.floor(bullet.width / 40) + 3; // More segments for longer bolts
-          const segmentLength = bullet.width / segments;
           let currentX = bullet.x;
+          let prevX = bullet.x;
+          let prevY = bullet.y;
 
           for (let i = 0; i < segments; i++) {
             currentX += segmentLength;
-            // Random vertical offset for zigzag effect
             const offsetY =
               (Math.random() - 0.5) * 12 +
               Math.sin((bullet.lifetime + i) * 0.5) * 6;
-            ctx.lineTo(currentX, bullet.y + offsetY);
+            const currentY = bullet.y + offsetY;
+
+            // Calculate taper based on pixels from end
+            const pixelsFromStart = i * segmentLength;
+            const pixelsFromEnd = bullet.width - pixelsFromStart;
+            const taperFactor =
+              pixelsFromEnd < taperDistancePx
+                ? pixelsFromEnd / taperDistancePx // 0 at end, 1 at start of taper
+                : 1;
+
+            // Apply opacity taper only in the tapered section
+            const opacityTaper =
+              pixelsFromEnd < taperDistancePx
+                ? pixelsFromEnd / taperDistancePx
+                : 1;
+
+            ctx.strokeStyle = `rgba(96, 165, 250, ${opacity * opacityTaper})`;
+            ctx.lineWidth = 4 * taperFactor;
+            ctx.beginPath();
+            ctx.moveTo(prevX, prevY);
+            ctx.lineTo(currentX, currentY);
+            ctx.stroke();
+
+            prevX = currentX;
+            prevY = currentY;
           }
 
-          ctx.stroke();
-
-          // Draw bright core
-          ctx.strokeStyle = `rgba(191, 219, 254, ${opacity})`;
-          ctx.lineWidth = 2;
+          // Draw bright core layer with tapering and independent randomness
           ctx.shadowBlur = 15 * fadeRatio;
           ctx.shadowColor = "#60A5FA";
-          ctx.beginPath();
-          ctx.moveTo(bullet.x, bullet.y);
+
           currentX = bullet.x;
+          prevX = bullet.x;
+          prevY = bullet.y;
+
           for (let i = 0; i < segments; i++) {
             currentX += segmentLength;
             const offsetY =
               (Math.random() - 0.5) * 8 +
               Math.sin((bullet.lifetime + i) * 0.5) * 4;
-            ctx.lineTo(currentX, bullet.y + offsetY);
-          }
-          ctx.stroke();
+            const currentY = bullet.y + offsetY;
 
-          // Add occasional bright flashes
-          if (bullet.lifetime < 3 && Math.random() > 0.5) {
-            ctx.strokeStyle = `rgba(255, 255, 255, ${opacity * 0.6})`;
-            ctx.lineWidth = 1;
-            ctx.shadowBlur = 25 * fadeRatio;
+            const pixelsFromStart = i * segmentLength;
+            const pixelsFromEnd = bullet.width - pixelsFromStart;
+            const taperFactor =
+              pixelsFromEnd < taperDistancePx
+                ? pixelsFromEnd / taperDistancePx
+                : 1;
+
+            const opacityTaper =
+              pixelsFromEnd < taperDistancePx
+                ? pixelsFromEnd / taperDistancePx
+                : 1;
+
+            ctx.strokeStyle = `rgba(191, 219, 254, ${opacity * opacityTaper})`;
+            ctx.lineWidth = 2 * taperFactor;
             ctx.beginPath();
-            ctx.moveTo(bullet.x, bullet.y);
+            ctx.moveTo(prevX, prevY);
+            ctx.lineTo(currentX, currentY);
+            ctx.stroke();
+
+            prevX = currentX;
+            prevY = currentY;
+          }
+
+          // Add occasional bright flashes with tapering and independent randomness
+          if (bullet.lifetime < 3 && Math.random() > 0.5) {
+            ctx.shadowBlur = 25 * fadeRatio;
+
             currentX = bullet.x;
+            prevX = bullet.x;
+            prevY = bullet.y;
+
             for (let i = 0; i < segments; i++) {
               currentX += segmentLength;
               const offsetY = (Math.random() - 0.5) * 6;
-              ctx.lineTo(currentX, bullet.y + offsetY);
+              const currentY = bullet.y + offsetY;
+
+              const pixelsFromStart = i * segmentLength;
+              const pixelsFromEnd = bullet.width - pixelsFromStart;
+              const taperFactor =
+                pixelsFromEnd < taperDistancePx
+                  ? pixelsFromEnd / taperDistancePx
+                  : 1;
+
+              const opacityTaper =
+                pixelsFromEnd < taperDistancePx
+                  ? pixelsFromEnd / taperDistancePx
+                  : 1;
+
+              ctx.strokeStyle = `rgba(255, 255, 255, ${
+                opacity * 0.6 * opacityTaper
+              })`;
+              ctx.lineWidth = 1 * taperFactor;
+              ctx.beginPath();
+              ctx.moveTo(prevX, prevY);
+              ctx.lineTo(currentX, currentY);
+              ctx.stroke();
+
+              prevX = currentX;
+              prevY = currentY;
             }
-            ctx.stroke();
           }
 
           // Reset shadow
@@ -905,6 +968,12 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
             enemy.isDying = true;
             enemy.deathFrame = 0;
             bullet.hasHit = true; // Mark that this bullet hit something
+
+            // Truncate bullet width to stop at this enemy (so it can't hit enemies behind it)
+            const hitDistance = enemy.x - bullet.x;
+            // Extend to middle of sprite to account for transparent padding, minimum 150px for visibility
+            bullet.width = Math.max(hitDistance + enemy.width * 0.5, 150);
+
             gameState.consecutiveHits++; // Increment hit streak
 
             // Trigger celebration face and supporter if player hits 5 in a row
@@ -1092,7 +1161,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
         const playerCenterY = p.y + p.height / 2;
         const enemyCenterY = enemy.y + enemy.height / 2;
         const verticalDistance = Math.abs(enemyCenterY - playerCenterY);
-        const avoidanceZone = 120; // If within 120 pixels vertically, try to avoid
+        const avoidanceZone = 200; // If within 200 pixels vertically, try to avoid
         const isAvoiding = verticalDistance < avoidanceZone;
 
         let currentVerticalSpeed = enemy.verticalSpeed;
