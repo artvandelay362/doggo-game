@@ -155,6 +155,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
     missTimer: 0, // Frames remaining to show angry face after missing (60 frames = 1 second)
     celebrationTimer: 0, // Frames remaining to show celebration face after hitting 4 in a row (60 frames = 1 second)
     lastSpawnedDogIndex: -1, // Track last spawned dog to avoid consecutive duplicates
+    playerScale: 1.0, // Track player scale for face proportions
   });
 
   // Sync isPaused, isGameOver, and supporterDisplay state with refs
@@ -189,11 +190,52 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
     canvas.width = Math.floor(window.innerWidth);
     canvas.height = Math.floor(window.innerHeight);
 
-    // Determine enemy size based on screen width (44% smaller on screens < 1024px)
-    const isSmallScreen = window.innerWidth < 1024;
-    const enemyTargetHeight = isSmallScreen ? 101 : 180; // 180 * 0.56 ≈ 101
-
     const gameState = gameStateRef.current;
+
+    // Scale both player AND enemies based on viewport height for visual consistency
+    let playerScale = 1.3; // Baseline for medium screens: 156×234px → 203×304px
+    let enemyScale = 1.3; // Enemies scale proportionally with player
+
+    if (canvas.height < 700) {
+      // Small screens (below 700px)
+      playerScale = 1.0; // 156×234px (original size)
+      enemyScale = 1.0; // 180px (original size)
+    } else if (canvas.height >= 1000) {
+      // Large screens (1000px+)
+      playerScale = 1.5; // 234×351px (50% bigger)
+      enemyScale = 1.5; // 270px (50% bigger)
+    }
+    // Medium screens (700-999px) use 1.3 scale (30% bigger)
+
+    const enemyTargetHeight = 180 * enemyScale; // Base enemy height: 180px, scaled
+
+    console.log(`🎮 Canvas dimensions: ${canvas.width}x${canvas.height}`);
+    console.log(`🎮 Player scale: ${playerScale}x`);
+    console.log(
+      `🎮 Player size will be: ${156 * playerScale}x${234 * playerScale}px`
+    );
+    console.log(`🎮 Enemy scale: ${enemyScale}x`);
+    console.log(`🎮 Enemy size will be: ~${enemyTargetHeight}px tall`);
+
+    gameState.player.width = 156 * playerScale;
+    gameState.player.height = 234 * playerScale;
+    gameState.playerScale = playerScale; // Store for face scaling
+
+    // Scale player speed based on viewport height for consistent difficulty
+    // Clamp to ±20%/±10% range to reduce variance (player size already balances difficulty)
+    const baseSpeed = 2.0;
+    const referenceHeight = 900; // Balanced at this height
+    const speedMultiplier = Math.max(
+      0.8,
+      Math.min(1.1, canvas.height / referenceHeight)
+    );
+    gameState.player.speed = baseSpeed * speedMultiplier;
+
+    console.log(
+      `🎮 Player speed multiplier: ${speedMultiplier.toFixed(
+        2
+      )}x (${gameState.player.speed.toFixed(2)} px/frame)`
+    );
 
     // Set initial player Y position to center of canvas
     gameState.player.y = canvas.height / 2 - gameState.player.height / 2;
@@ -646,11 +688,13 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
 
       if (flameLoaded && flameImg.complete && flameImg.naturalWidth > 0) {
         // Position flames behind the jetpack
-        // Scale to appropriate size (height around 60-70px)
-        const flameHeight = 65;
+        // Scale flame proportionally with player size
+        const baseFlameHeight = 65;
+        const playerScale = gameState.playerScale || 1.0;
+        const flameHeight = baseFlameHeight * playerScale;
         const flameWidth = flameHeight * flameAspectRatio;
 
-        // Position flame behind the character's back/jetpack area
+        // Position flame behind the character's back/jetpack area (scale offsets too)
         const flameX = p.x + flameWidth * 0.05; // Behind the player (even more to the right)
         const flameY = p.y + p.height * 0.35; // Centered on jetpack area
 
@@ -698,14 +742,16 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
           faceImg.complete &&
           faceImg.naturalWidth > 0
         ) {
-          // Scale face to 62.4px height while maintaining aspect ratio
-          const targetHeight = 62.4;
+          // Scale face proportionally with body size
+          const baseTargetHeight = 62.4;
+          const playerScale = gameState.playerScale || 1.0;
+          const targetHeight = baseTargetHeight * playerScale; // Scale with body
           const aspectRatio = faceOriginalWidth / faceOriginalHeight;
           const faceHeight = targetHeight;
           const faceWidth = faceHeight * aspectRatio;
 
-          const faceX = p.x + (p.width - faceWidth) / 2 - 8; // Center the face horizontally, then move 8px left
-          const faceY = p.y - faceHeight * 0.5 - 2; // Move face up higher, then 2px more
+          const faceX = p.x + (p.width - faceWidth) / 2 - 8 * playerScale; // Scale offset too
+          const faceY = p.y - faceHeight * 0.5 - 2 * playerScale; // Scale vertical offset
           ctx.drawImage(faceImg, faceX, faceY, faceWidth, faceHeight);
         }
       } else {
