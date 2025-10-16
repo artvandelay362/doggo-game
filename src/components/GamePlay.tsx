@@ -59,7 +59,7 @@ const enemyTypes = [
   },
   {
     body: "https://files.catbox.moe/v4btq9.png",
-    skeleton: "https://files.catbox.moe/dv36tf.png",
+    skeleton: "https://files.catbox.moe/50jogq.png",
   },
 ];
 
