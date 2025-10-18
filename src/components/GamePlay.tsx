@@ -115,13 +115,11 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
   const shootSound1Ref = useRef<HTMLAudioElement>(null); // 80% chance
   const shootSound2Ref = useRef<HTMLAudioElement>(null); // 20% chance
   const [score, setScore] = useState(0);
-  const [enemiesSpawned, setEnemiesSpawned] = useState(0);
   const [timeLeft, setTimeLeft] = useState(120); // 120 seconds (2 minutes)
   const [volume, setVolume] = useState(30); // Volume from 0-100
   const [previousVolume, setPreviousVolume] = useState(30); // Store volume before muting
   const [isPaused, setIsPaused] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
-  const [gameWon, setGameWon] = useState(false);
   const [supporterDisplay, setSupporterDisplay] = useState<{
     visible: boolean;
     fadeState: "in" | "visible" | "out";
@@ -701,7 +699,6 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
           });
           gameState.lastEnemySpawn = now;
           gameState.enemiesSpawned++;
-          setEnemiesSpawned((prev) => prev + 1); // Update state for display
         } else {
           // If we couldn't find a valid position, try again sooner
           gameState.lastEnemySpawn = now - 600; // Retry in half the normal time
@@ -1646,7 +1643,6 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
     if (timeLeft <= 0) {
       // Time's up - always show victory screen
       setIsGameOver(true);
-      setGameWon(true);
       return;
     }
 
@@ -1694,10 +1690,8 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
   const handleRestart = () => {
     // Reset all game state
     setScore(0);
-    setEnemiesSpawned(0);
     setTimeLeft(120);
     setIsGameOver(false);
-    setGameWon(false);
     setSupporterDisplay(null);
     supporterTimerRef.current = 0;
     lastNegativeSupporterFrame.current = -999; // Reset negative supporter cooldown
