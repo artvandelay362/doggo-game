@@ -239,11 +239,11 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
     gameState.playerScale = playerScale; // Store for face scaling
 
     // Scale player speed based on viewport height for consistent difficulty
-    // Clamp to ±20%/±10% range to reduce variance (player size already balances difficulty)
+    // Small screens boosted by 10%: minimum 0.88x instead of 0.8x
     const baseSpeed = 2.0;
     const referenceHeight = 900; // Balanced at this height
     const speedMultiplier = Math.max(
-      0.8,
+      0.88,
       Math.min(1.1, canvas.height / referenceHeight)
     );
     gameState.player.speed = baseSpeed * speedMultiplier;
@@ -600,8 +600,8 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
 
         while (!validPosition && attempts < 50) {
           // Add margins to keep enemies away from top and bottom edges
-          const topMargin = 50; // Don't spawn in top 50 pixels
-          const bottomMargin = 150; // Don't spawn in bottom 150 pixels (keep away from bottom)
+          const topMargin = 40; // Don't spawn in top 40 pixels
+          const bottomMargin = 130; // Don't spawn in bottom 130 pixels (keep away from bottom)
           const spawnableHeight =
             canvas.height - topMargin - bottomMargin - enemyHeight;
 
@@ -1434,7 +1434,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
         const playerCenterY = p.y + p.height / 2;
         const enemyCenterY = enemy.y + enemy.height / 2;
         const verticalDistance = Math.abs(enemyCenterY - playerCenterY);
-        const avoidanceZone = 200; // If within 200 pixels vertically, try to avoid
+        const avoidanceZone = 150; // If within 150 pixels vertically, try to avoid
         const isAvoiding = verticalDistance < avoidanceZone;
 
         let currentVerticalSpeed = enemy.verticalSpeed;
