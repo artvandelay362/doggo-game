@@ -114,6 +114,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
   const hitSound3Ref = useRef<HTMLAudioElement>(null); // 10% chance
   const shootSound1Ref = useRef<HTMLAudioElement>(null); // 80% chance
   const shootSound2Ref = useRef<HTMLAudioElement>(null); // 20% chance
+  const candymanHitSoundRef = useRef<HTMLAudioElement>(null); // Candyman hit sound
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(120); // 120 seconds (2 minutes)
   const [volume, setVolume] = useState(30); // Volume from 0-100
@@ -1091,6 +1092,54 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
           } else if (enemy.active) {
             // Normal enemy rendering
             if (enemy.isCandyman) {
+              // Draw Candyman's flame first (behind the sprite)
+              if (
+                flame1Loaded &&
+                flame1Img.complete &&
+                flame1Img.naturalWidth > 0
+              ) {
+                // Use big flame (flame1) - non-flickering, rotated 90 degrees, 50% bigger
+                const playerScale = gameState.playerScale || 1.0;
+                const baseFlameHeight = 65 * playerScale * 1.5; // 50% bigger
+                const flameHeight = baseFlameHeight;
+                const flameWidth = flameHeight * flame1AspectRatio;
+
+                // Position flame at 65% of sprite width
+                // Place at 10% from top of Candyman
+                const flameX = enemy.x + enemy.width * 0.65 - flameWidth * 0.3; // At 65% width
+                const flameY = enemy.y + enemy.height * 0.1; // 10% from the top
+
+                // Save context for rotation
+                ctx.save();
+
+                // Move to the flame's center point for rotation
+                ctx.translate(
+                  flameX + flameWidth / 2,
+                  flameY + flameHeight / 2
+                );
+
+                // Rotate 90 degrees clockwise (Math.PI / 2 radians)
+                ctx.rotate(Math.PI / 2);
+
+                // Flip vertically
+                ctx.scale(1, -1);
+
+                // Set opacity: 90% like the big player flame
+                ctx.globalAlpha = 0.9;
+
+                // Draw flame (centered at origin after translation)
+                ctx.drawImage(
+                  flame1Img,
+                  -flameWidth / 2,
+                  -flameHeight / 2,
+                  flameWidth,
+                  flameHeight
+                );
+
+                // Restore context
+                ctx.restore();
+              }
+
               // Draw Candyman sprite
               if (
                 candymanLoaded &&
@@ -1246,17 +1295,29 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
           const fistHitboxY =
             enemy.y + enemy.height * 0.4 - fistHitboxHeight / 2; // Centered at 40% down
 
-          // Check if Candyman's fist hitbox collides with player
+          // Create player hitbox for only top 60% (torso and head, excluding legs)
+          const playerHitboxHeight = p.height * 0.6; // Only top 60% of player
+
+          // Check if Candyman's fist hitbox collides with player's top 60%
           if (
             p.x < fistHitboxX + fistHitboxWidth &&
             p.x + p.width > fistHitboxX &&
             p.y < fistHitboxY + fistHitboxHeight &&
-            p.y + p.height > fistHitboxY
+            p.y + playerHitboxHeight > fistHitboxY
           ) {
             // Immobilize player
             gameState.isImmobilized = true;
             gameState.immobilizedTimer = 240; // 4 seconds at 60fps
             gameState.immobilizedFlashFrame = 0;
+
+            // Play Candyman hit sound
+            if (candymanHitSoundRef.current) {
+              candymanHitSoundRef.current.currentTime = 0; // Reset to start
+              candymanHitSoundRef.current.volume = (volume / 100) * 0.8; // Match game volume
+              candymanHitSoundRef.current.play().catch((error) => {
+                console.log("Candyman hit sound playback failed:", error);
+              });
+            }
 
             // Remove the Candyman that hit the player
             enemy.active = false;
@@ -1407,13 +1468,15 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
 
         // Special movement for Candyman: follow the player
         if (enemy.isCandyman) {
-          const playerCenterY = p.y + p.height / 2;
+          // Track the center of the player's vulnerable area (top 60% = torso + head)
+          // Center of top 60% is at 30% from top
+          const playerCenterY = p.y + p.height * 0.3;
           const enemyCenterY = enemy.y + enemy.height / 2;
           const verticalDistance = enemyCenterY - playerCenterY;
 
-          // Move towards player aggressively (70% harder to dodge)
-          const followSpeed = 0.8704; // 70% faster than baseline (0.512 * 1.7)
-          const deadZone = 12; // 70% smaller dead zone (40 * 0.3) - tracks player much more closely
+          // Move towards player aggressively (73% harder than original)
+          const followSpeed = 1.50336; // 20% faster than previous (1.2528 * 1.2)
+          const deadZone = 6; // Extremely tight dead zone for precise tracking
 
           if (Math.abs(verticalDistance) > deadZone) {
             // Move towards player quickly and aggressively
@@ -1762,6 +1825,11 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
       </audio>
       <audio ref={shootSound2Ref} preload="auto">
         <source src="https://files.catbox.moe/cp0rjm.mp3" type="audio/mpeg" />
+      </audio>
+
+      {/* Candyman hit sound */}
+      <audio ref={candymanHitSoundRef} preload="auto">
+        <source src="https://files.catbox.moe/udwke3.mp3" type="audio/mpeg" />
       </audio>
 
       {/* Canvas - Full screen */}
