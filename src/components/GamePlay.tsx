@@ -115,6 +115,23 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
   const shootSound1Ref = useRef<HTMLAudioElement>(null); // 80% chance
   const shootSound2Ref = useRef<HTMLAudioElement>(null); // 20% chance
   const candymanHitSoundRef = useRef<HTMLAudioElement>(null); // Candyman hit sound
+
+  // Audio pools for instant playback without delay
+  const hitSound1PoolRef = useRef<HTMLAudioElement[]>([]);
+  const hitSound2PoolRef = useRef<HTMLAudioElement[]>([]);
+  const hitSound3PoolRef = useRef<HTMLAudioElement[]>([]);
+  const shootSound1PoolRef = useRef<HTMLAudioElement[]>([]);
+  const shootSound2PoolRef = useRef<HTMLAudioElement[]>([]);
+  const candymanHitSoundPoolRef = useRef<HTMLAudioElement[]>([]);
+  const audioPoolIndexRef = useRef({
+    hitSound1: 0,
+    hitSound2: 0,
+    hitSound3: 0,
+    shootSound1: 0,
+    shootSound2: 0,
+    candymanHit: 0,
+  });
+
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(120); // 120 seconds (2 minutes)
   const [volume, setVolume] = useState(30); // Volume from 0-100
@@ -138,13 +155,15 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
   const cheatCodeRef = useRef(""); // Track cheat code input
   const supporterTimerRef = useRef(0); // Track supporter animation timer
   const lastNegativeSupporterFrame = useRef(-999); // Track when last negative supporter was shown (initialize to allow first trigger)
+  const musicStartedRef = useRef(false); // Track if background music has started
   const gameStateRef = useRef({
     player: { x: 50, y: 0, width: 156, height: 234, speed: 2.0 },
     bullets: [] as Bullet[],
     enemies: [] as Enemy[],
     keys: {} as Record<string, boolean>,
-    lastEnemySpawn: 0,
-    lastCandymanSpawn: 0, // Track Candyman spawns separately
+    lastEnemySpawn: Date.now(), // Initialize to current time to prevent immediate spawn
+    lastCandymanSpawn: Date.now(), // Initialize to current time to enforce 10 second delay
+    firstCandymanSpawned: false, // Track if first Candyman has been spawned
     lastShot: 0,
     animationFrame: 0,
     enemiesSpawned: 0,
@@ -196,12 +215,95 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
 
     console.log("🎮 Canvas initialized, starting game setup");
 
-    // Start playing background music
+    // Initialize audio pools (3 instances of each sound for instant playback)
+    const initAudioPool = (
+      src: string,
+      poolSize: number = 3
+    ): HTMLAudioElement[] => {
+      const pool: HTMLAudioElement[] = [];
+      for (let i = 0; i < poolSize; i++) {
+        const audio = new Audio(src);
+        audio.preload = "auto";
+        audio.volume = (volume / 100) * 0.8;
+        // Force load the audio immediately
+        audio.load();
+        pool.push(audio);
+      }
+      return pool;
+    };
+
+    hitSound1PoolRef.current = initAudioPool(
+      "https://files.catbox.moe/9q9cj2.mp3"
+    );
+    hitSound2PoolRef.current = initAudioPool(
+      "https://files.catbox.moe/k070y2.mp3"
+    );
+    hitSound3PoolRef.current = initAudioPool(
+      "https://files.catbox.moe/xeapud.mp3"
+    );
+    shootSound1PoolRef.current = initAudioPool(
+      "https://files.catbox.moe/qm4nuo.mp3"
+    );
+    shootSound2PoolRef.current = initAudioPool(
+      "https://files.catbox.moe/cp0rjm.mp3"
+    );
+    candymanHitSoundPoolRef.current = initAudioPool(
+      "https://files.catbox.moe/udwke3.mp3"
+    );
+
+    // Setup background music with aggressive autoplay strategy
     if (audioRef.current) {
       audioRef.current.volume = 0.3 * 0.8; // Set initial volume to 30% (with 20% max reduction)
-      audioRef.current.play().catch((error) => {
-        console.log("Audio playback failed:", error);
+      audioRef.current.load(); // Preload the audio
+
+      // Function to attempt starting music
+      const tryStartMusic = () => {
+        if (!musicStartedRef.current && audioRef.current) {
+          audioRef.current
+            .play()
+            .then(() => {
+              console.log("✅ Background music started!");
+              musicStartedRef.current = true;
+            })
+            .catch(() => {
+              // Silent fail - will retry on next interaction
+            });
+        }
+      };
+
+      // Try immediately (might work if user just clicked Start button)
+      tryStartMusic();
+
+      // If that didn't work, try on any user interaction
+      const interactions = ["click", "keydown", "mousedown", "touchstart"];
+      const startMusicOnInteraction = () => {
+        if (!musicStartedRef.current) {
+          tryStartMusic();
+        }
+        // Remove listeners once music starts
+        if (musicStartedRef.current) {
+          interactions.forEach((event) => {
+            window.removeEventListener(event, startMusicOnInteraction);
+          });
+        }
+      };
+
+      // Add listeners for all interaction types
+      interactions.forEach((event) => {
+        window.addEventListener(event, startMusicOnInteraction, {
+          once: false,
+        });
       });
+
+      // Cleanup function to remove listeners if component unmounts
+      const cleanupMusicListeners = () => {
+        interactions.forEach((event) => {
+          window.removeEventListener(event, startMusicOnInteraction);
+        });
+      };
+
+      // Store cleanup function for later
+      (window as any).__cleanupMusicListeners = cleanupMusicListeners;
     }
 
     // Set canvas size to 100% of viewport width and 100% of viewport height
@@ -533,6 +635,51 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
 
+    // Helper function to play sound from pool (instant, no delay)
+    const playSoundFromPool = (
+      pool: HTMLAudioElement[],
+      poolKey: keyof typeof audioPoolIndexRef.current
+    ) => {
+      if (pool.length === 0) return;
+
+      // Get next audio element from pool (round-robin)
+      const index = audioPoolIndexRef.current[poolKey];
+      const audio = pool[index];
+
+      // Update index for next time
+      audioPoolIndexRef.current[poolKey] = (index + 1) % pool.length;
+
+      // Update volume to match current game volume
+      audio.volume = (volume / 100) * 0.8;
+
+      // Reset to start and play
+      audio.currentTime = 0;
+
+      // Play with error handling
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((error) => {
+          // If audio isn't ready yet, try to load it first
+          if (audio.readyState < 2) {
+            audio.load();
+            audio.addEventListener(
+              "canplaythrough",
+              () => {
+                audio
+                  .play()
+                  .catch((e) =>
+                    console.log("Delayed sound playback failed:", e)
+                  );
+              },
+              { once: true }
+            );
+          } else {
+            console.log("Sound playback failed:", error);
+          }
+        });
+      }
+    };
+
     // Shoot function
     const shoot = () => {
       // Can't shoot when immobilized
@@ -564,23 +711,13 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
         // Play random shoot sound based on probability
         // 80% chance for sound 1, 20% chance for sound 2
         const randomValue = Math.random() * 100;
-        let selectedShootSound: HTMLAudioElement | null = null;
 
         if (randomValue < 80) {
           // 0-80: Sound 1 (80%)
-          selectedShootSound = shootSound1Ref.current;
+          playSoundFromPool(shootSound1PoolRef.current, "shootSound1");
         } else {
           // 80-100: Sound 2 (20%)
-          selectedShootSound = shootSound2Ref.current;
-        }
-
-        // Play the selected sound
-        if (selectedShootSound) {
-          selectedShootSound.currentTime = 0; // Reset to start
-          selectedShootSound.volume = (volume / 100) * 0.8; // Match game volume (with 20% max reduction)
-          selectedShootSound.play().catch((error) => {
-            console.log("Shoot sound playback failed:", error);
-          });
+          playSoundFromPool(shootSound2PoolRef.current, "shootSound2");
         }
       }
     };
@@ -720,13 +857,20 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
       }
     };
 
-    // Spawn Candyman enemy (every 15-20 seconds)
+    // Spawn Candyman enemy (first one after 10 seconds, then every 15-20 seconds)
     const spawnCandyman = () => {
       const now = Date.now();
-      // Random interval between 15-20 seconds (15000-20000 ms)
-      const spawnInterval = 15000 + Math.random() * 5000;
+
+      // First Candyman: wait 10 seconds (gives audio time to load and player to get ready)
+      // Subsequent Candyman: random interval between 15-20 seconds (15000-20000 ms)
+      const isFirstCandyman = !gameState.firstCandymanSpawned;
+      const spawnInterval = isFirstCandyman
+        ? 10000
+        : 15000 + Math.random() * 5000;
 
       if (now - gameState.lastCandymanSpawn > spawnInterval) {
+        // Mark that first Candyman has been spawned
+        gameState.firstCandymanSpawned = true;
         // Spawn Candyman at a consistent position relative to player
         const topMargin = 50;
         const bottomMargin = 150;
@@ -1255,26 +1399,16 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
             // Play random hit sound based on probability
             // 30% chance for sound 1, 60% chance for sound 2, 10% chance for sound 3
             const randomValue = Math.random() * 100;
-            let selectedSound: HTMLAudioElement | null = null;
 
             if (randomValue < 30) {
               // 0-30: Sound 1 (30%)
-              selectedSound = hitSound1Ref.current;
+              playSoundFromPool(hitSound1PoolRef.current, "hitSound1");
             } else if (randomValue < 90) {
               // 30-90: Sound 2 (60%)
-              selectedSound = hitSound2Ref.current;
+              playSoundFromPool(hitSound2PoolRef.current, "hitSound2");
             } else {
               // 90-100: Sound 3 (10%)
-              selectedSound = hitSound3Ref.current;
-            }
-
-            // Play the selected sound
-            if (selectedSound) {
-              selectedSound.currentTime = 0; // Reset to start
-              selectedSound.volume = (volume / 100) * 0.8; // Match game volume (with 20% max reduction)
-              selectedSound.play().catch((error) => {
-                console.log("Hit sound playback failed:", error);
-              });
+              playSoundFromPool(hitSound3PoolRef.current, "hitSound3");
             }
 
             setScore((prev) => prev + 1); // Count each enemy hit
@@ -1311,13 +1445,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
             gameState.immobilizedFlashFrame = 0;
 
             // Play Candyman hit sound
-            if (candymanHitSoundRef.current) {
-              candymanHitSoundRef.current.currentTime = 0; // Reset to start
-              candymanHitSoundRef.current.volume = (volume / 100) * 0.8; // Match game volume
-              candymanHitSoundRef.current.play().catch((error) => {
-                console.log("Candyman hit sound playback failed:", error);
-              });
-            }
+            playSoundFromPool(candymanHitSoundPoolRef.current, "candymanHit");
 
             // Remove the Candyman that hit the player
             enemy.active = false;
@@ -1695,6 +1823,12 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
       }
+
+      // Remove music start listeners if they exist
+      if ((window as any).__cleanupMusicListeners) {
+        (window as any).__cleanupMusicListeners();
+        delete (window as any).__cleanupMusicListeners;
+      }
     };
   }, []); // Empty dependency - game loop only initializes once!
 
@@ -1790,6 +1924,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
     setSupporterDisplay(null);
     supporterTimerRef.current = 0;
     lastNegativeSupporterFrame.current = -999; // Reset negative supporter cooldown
+    musicStartedRef.current = false; // Reset music flag so it can restart on first interaction
     gameStateRef.current.enemiesSpawned = 0;
     gameStateRef.current.enemies = [];
     gameStateRef.current.bullets = [];
@@ -1798,6 +1933,9 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
     gameStateRef.current.celebrationTimer = 0;
     gameStateRef.current.animationFrame = 0; // Reset animation frame counter
     gameStateRef.current.lastSpawnedDogIndex = -1; // Reset last spawned dog
+    gameStateRef.current.lastEnemySpawn = Date.now(); // Reset spawn timers
+    gameStateRef.current.lastCandymanSpawn = Date.now(); // Reset Candyman spawn timer
+    gameStateRef.current.firstCandymanSpawned = false; // Reset first Candyman flag
     console.log("🔄 RESTART: Complete - timeLeft reset to 120");
   };
 
