@@ -1447,6 +1447,29 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
             // Play Candyman hit sound
             playSoundFromPool(candymanHitSoundPoolRef.current, "candymanHit");
 
+            // Show negative supporter when hit by Candyman (with cooldown)
+            const framesSinceLastNegative =
+              gameState.animationFrame - lastNegativeSupporterFrame.current;
+            if (framesSinceLastNegative >= 300) {
+              // Show supporter with negative message
+              const randomImage =
+                supporterImages[
+                  Math.floor(Math.random() * supporterImages.length)
+                ];
+              const randomText =
+                negativeMessages[
+                  Math.floor(Math.random() * negativeMessages.length)
+                ];
+              setSupporterDisplay({
+                visible: true,
+                fadeState: "in",
+                image: randomImage,
+                text: randomText,
+              });
+              supporterTimerRef.current = 0; // Reset timer
+              lastNegativeSupporterFrame.current = gameState.animationFrame; // Record when this negative supporter was shown
+            }
+
             // Remove the Candyman that hit the player
             enemy.active = false;
           }
@@ -1703,29 +1726,6 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
           if (!bullet.hasHit) {
             gameState.consecutiveHits = 0; // Always reset consecutive hits on miss
             gameState.missTimer = 60; // Always show angry face for 60 frames (~1 second)
-
-            // Only show supporter if cooldown has passed (5 seconds = 300 frames)
-            const framesSinceLastNegative =
-              gameState.animationFrame - lastNegativeSupporterFrame.current;
-            if (framesSinceLastNegative >= 300) {
-              // Show supporter with negative message
-              const randomImage =
-                supporterImages[
-                  Math.floor(Math.random() * supporterImages.length)
-                ];
-              const randomText =
-                negativeMessages[
-                  Math.floor(Math.random() * negativeMessages.length)
-                ];
-              setSupporterDisplay({
-                visible: true,
-                fadeState: "in",
-                image: randomImage,
-                text: randomText,
-              });
-              supporterTimerRef.current = 0; // Reset timer
-              lastNegativeSupporterFrame.current = gameState.animationFrame; // Record when this negative supporter was shown
-            }
           }
           return false;
         }
