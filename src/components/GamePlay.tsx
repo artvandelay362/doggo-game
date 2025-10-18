@@ -3,19 +3,19 @@ import { Volume2, VolumeX } from "lucide-react";
 import { Slider } from "./ui/slider";
 
 // Background asset
-const backgroundImage = "https://files.catbox.moe/xnu9u9.jpg";
+const backgroundImage = "https://i.imgur.com/FBGihp5.jpeg";
 
 // Supporter images
 const supporterImages = [
-  "https://files.catbox.moe/or7bjw.png",
-  "https://files.catbox.moe/bf5fqm.png",
-  "https://files.catbox.moe/vs4zar.png",
-  "https://files.catbox.moe/b6q79p.png",
-  "https://files.catbox.moe/32zdjd.png",
-  "https://files.catbox.moe/12yovi.png",
-  "https://files.catbox.moe/ez40p6.png",
-  "https://files.catbox.moe/ep5odv.png",
-  "https://files.catbox.moe/ktij84.png",
+  "https://i.imgur.com/mLQbZOy.png",
+  "https://i.imgur.com/Fyaps4u.png",
+  "https://i.imgur.com/fEUMoMB.png",
+  "https://i.imgur.com/VIhn9nj.png",
+  "https://i.imgur.com/tCTXnVr.png",
+  "https://i.imgur.com/UM8AITa.png",
+  "https://i.imgur.com/WRrXXNd.png",
+  "https://i.imgur.com/Lp3A9A5.png",
+  "https://i.imgur.com/txad79x.png",
 ];
 
 // Text messages for supporters
@@ -30,42 +30,46 @@ const positiveMessages = [
 const negativeMessages = ["Don't give up!", "Focus..."];
 
 // Character assets
-const playerBody1 = "https://files.catbox.moe/bvvqko.png";
-const faceNormalAsset = "https://files.catbox.moe/i2sb95.png";
-const faceAngryAsset = "https://files.catbox.moe/nqcsuf.png";
-const faceCelebrationAsset = "https://files.catbox.moe/so7gd2.png";
+const playerBody1 = "https://i.imgur.com/lxKF9yl.png";
+const faceNormalAsset = "https://i.imgur.com/fgGOeWQ.png";
+const faceAngryAsset = "https://i.imgur.com/qN9QWLP.png";
+const faceCelebrationAsset = "https://i.imgur.com/jFHPAPI.png";
+const faceSadAsset = "https://i.imgur.com/pdMRPT4.png";
 
 // Enemy assets - each dog has its own body and skeleton
 const enemyTypes = [
   {
-    body: "https://files.catbox.moe/00s5pt.png",
-    skeleton: "https://files.catbox.moe/f67c94.png",
+    body: "https://i.imgur.com/3pDVzgY.png",
+    skeleton: "https://i.imgur.com/w79dL4z.png",
   },
   {
-    body: "https://files.catbox.moe/k0q1ft.png",
-    skeleton: "https://files.catbox.moe/f67c94.png",
+    body: "https://i.imgur.com/KMI8jai.png",
+    skeleton: "https://i.imgur.com/sEOeaJW.png",
   },
   {
-    body: "https://files.catbox.moe/ai63gz.png",
-    skeleton: "https://files.catbox.moe/g7l128.png",
+    body: "https://i.imgur.com/y7nQKAa.png",
+    skeleton: "https://i.imgur.com/PgrzdHV.png",
   },
   {
-    body: "https://files.catbox.moe/c1d65d.png",
-    skeleton: "https://files.catbox.moe/61cgwu.png",
+    body: "https://i.imgur.com/RdrhxiZ.png",
+    skeleton: "https://i.imgur.com/dmaqSfS.png",
   },
   {
-    body: "https://files.catbox.moe/6p7mgx.png",
-    skeleton: "https://files.catbox.moe/u3dh32.png",
+    body: "https://i.imgur.com/AqwVE6g.png",
+    skeleton: "https://i.imgur.com/UeJuVh8.png",
   },
   {
-    body: "https://files.catbox.moe/v4btq9.png",
-    skeleton: "https://files.catbox.moe/50jogq.png",
+    body: "https://i.imgur.com/pMiHO68.png",
+    skeleton: "https://i.imgur.com/YfsvMnf.png",
   },
 ];
 
+// Candyman enemy asset
+const candymanAsset = "https://i.imgur.com/pGNfvXC.png";
+
 // Flame assets
-const flame1 = "https://files.catbox.moe/e5ab92.png";
-const flame2 = "https://files.catbox.moe/jushle.png";
+const flame1 = "https://i.imgur.com/Zi2RUky.png";
+const flame2 = "https://i.imgur.com/z4eVz5y.png";
 
 interface GamePlayProps {
   onQuit: () => void;
@@ -89,7 +93,7 @@ interface Bullet extends GameObject {
 interface Enemy extends GameObject {
   active: boolean;
   speed: number;
-  imageIndex: number; // 0-4 for the five dog images
+  imageIndex: number; // 0-5 for the six dog images
   isDying?: boolean; // Track if enemy is in death animation
   deathFrame?: number; // Frame counter for death animation
   baseY: number; // Base Y position for vertical oscillation
@@ -99,6 +103,7 @@ interface Enemy extends GameObject {
   maxDownOffset: number; // Maximum distance can move down from base
   currentOffset: number; // Current offset from base Y
   changeDirectionChance: number; // Probability of changing direction each frame
+  isCandyman?: boolean; // Special Candyman enemy that cannot be shot
 }
 
 export default function GamePlay({ onQuit }: GamePlayProps) {
@@ -110,8 +115,8 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
   const shootSound1Ref = useRef<HTMLAudioElement>(null); // 80% chance
   const shootSound2Ref = useRef<HTMLAudioElement>(null); // 20% chance
   const [score, setScore] = useState(0);
-  const [totalEnemies] = useState(100);
-  const [timeLeft, setTimeLeft] = useState(80); // 80 seconds
+  const [enemiesSpawned, setEnemiesSpawned] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(120); // 120 seconds (2 minutes)
   const [volume, setVolume] = useState(30); // Volume from 0-100
   const [previousVolume, setPreviousVolume] = useState(30); // Store volume before muting
   const [isPaused, setIsPaused] = useState(false);
@@ -140,10 +145,11 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
     enemies: [] as Enemy[],
     keys: {} as Record<string, boolean>,
     lastEnemySpawn: 0,
+    lastCandymanSpawn: 0, // Track Candyman spawns separately
     lastShot: 0,
     animationFrame: 0,
     enemiesSpawned: 0,
-    maxEnemies: 100,
+    maxEnemies: 999999, // Effectively infinite
     consecutiveHits: 0,
     basePlayerY: 0, // Base Y position for floating animation
     isPlayerMoving: false,
@@ -156,6 +162,9 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
     celebrationTimer: 0, // Frames remaining to show celebration face after hitting 4 in a row (60 frames = 1 second)
     lastSpawnedDogIndex: -1, // Track last spawned dog to avoid consecutive duplicates
     playerScale: 1.0, // Track player scale for face proportions
+    isImmobilized: false, // Track if player is immobilized by Candyman
+    immobilizedTimer: 0, // Frames remaining for immobilization (240 frames = 4 seconds)
+    immobilizedFlashFrame: 0, // Frame counter for flashing effect
   });
 
   // Sync isPaused, isGameOver, and supporterDisplay state with refs
@@ -339,6 +348,25 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
       faceCelebrationLoaded = false;
     };
 
+    const faceSadImg = new Image(); // Sad face - for later use
+    faceSadImg.src = faceSadAsset;
+    let faceSadLoaded = false;
+    let faceSadWidth = 0;
+    let faceSadHeight = 0;
+
+    faceSadImg.onload = () => {
+      if (faceSadImg.naturalWidth > 0 && faceSadImg.naturalHeight > 0) {
+        faceSadLoaded = true;
+        faceSadWidth = faceSadImg.naturalWidth;
+        faceSadHeight = faceSadImg.naturalHeight;
+      }
+    };
+
+    faceSadImg.onerror = () => {
+      console.error("Failed to load sad face image");
+      faceSadLoaded = false;
+    };
+
     // Load enemy images (body and skeleton for each type)
     const enemyBodyImages: HTMLImageElement[] = [];
     const enemyBodyImagesLoaded: boolean[] = [];
@@ -423,23 +451,29 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
       flame2Loaded = false;
     };
 
-    // Cheat code function - instantly win the game
+    // Load Candyman image
+    const candymanImg = new Image();
+    candymanImg.src = candymanAsset;
+    let candymanLoaded = false;
+    let candymanAspectRatio = 1;
+
+    candymanImg.onload = () => {
+      if (candymanImg.naturalWidth > 0 && candymanImg.naturalHeight > 0) {
+        candymanLoaded = true;
+        candymanAspectRatio =
+          candymanImg.naturalWidth / candymanImg.naturalHeight;
+      }
+    };
+
+    candymanImg.onerror = () => {
+      console.error("Failed to load Candyman image");
+      candymanLoaded = false;
+    };
+
+    // Cheat code function - skip to end of game
     const activateCheat = () => {
-      // Set score to 100
-      setScore(100);
-      // Kill all active enemies
-      gameState.enemies.forEach((enemy) => {
-        if (enemy.active) {
-          enemy.active = false;
-          enemy.isDying = true;
-          enemy.deathFrame = 0;
-        }
-      });
-      // Trigger victory
-      setTimeout(() => {
-        setIsGameOver(true);
-        setGameWon(true);
-      }, 100);
+      // End the game immediately by setting time to 0
+      setTimeLeft(0);
     };
 
     // Keyboard controls
@@ -489,6 +523,9 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
 
     // Shoot function
     const shoot = () => {
+      // Can't shoot when immobilized
+      if (gameState.isImmobilized) return;
+
       const now = Date.now();
       if (now - gameState.lastShot > 300) {
         // Fire rate limit
@@ -536,13 +573,13 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
       }
     };
 
-    // Spawn enemies (100 total over 85 seconds = 1 every 0.85 seconds)
+    // Spawn enemies (infinite spawning over 120 seconds = 1 every 0.5 seconds)
     const spawnEnemy = () => {
       if (gameState.enemiesSpawned >= gameState.maxEnemies) return;
 
       const now = Date.now();
-      if (now - gameState.lastEnemySpawn > 850) {
-        // Spawn every 0.85 seconds
+      if (now - gameState.lastEnemySpawn > 500) {
+        // Spawn every 0.5 seconds
         // Find a Y position that doesn't conflict with existing enemies
         let yPos = 0;
         let attempts = 0;
@@ -594,9 +631,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
           // Update last spawned dog
           gameState.lastSpawnedDogIndex = randomImageIndex;
 
-          // Calculate width and height maintaining aspect ratio
-          const aspectRatio = enemyBodyAspectRatios[randomImageIndex];
-          const enemyWidth = enemyTargetHeight * aspectRatio;
+          // Store only height at spawn - width will be calculated at draw time using actual aspect ratio
           const enemyHeight = enemyTargetHeight;
 
           // Create chaotic, random vertical movement patterns
@@ -651,9 +686,9 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
           gameState.enemies.push({
             x: canvas.width,
             y: yPos,
-            width: enemyWidth,
+            width: enemyHeight * (enemyBodyAspectRatios[randomImageIndex] || 1), // Calculate with current aspect ratio
             height: enemyHeight,
-            speed: 1.5 + Math.random() * 3.2,
+            speed: 2.1 + Math.random() * 2.9,
             active: true,
             imageIndex: randomImageIndex,
             baseY: yPos,
@@ -666,10 +701,59 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
           });
           gameState.lastEnemySpawn = now;
           gameState.enemiesSpawned++;
+          setEnemiesSpawned((prev) => prev + 1); // Update state for display
         } else {
           // If we couldn't find a valid position, try again sooner
           gameState.lastEnemySpawn = now - 600; // Retry in half the normal time
         }
+      }
+    };
+
+    // Spawn Candyman enemy (every 15-20 seconds)
+    const spawnCandyman = () => {
+      const now = Date.now();
+      // Random interval between 15-20 seconds (15000-20000 ms)
+      const spawnInterval = 15000 + Math.random() * 5000;
+
+      if (now - gameState.lastCandymanSpawn > spawnInterval) {
+        // Spawn Candyman at a consistent position relative to player
+        const topMargin = 50;
+        const bottomMargin = 150;
+        // Candyman height is 2/3 of player height, scaled proportionally
+        const candymanHeight = 234 * (gameState.playerScale || 1.0) * (2 / 3);
+        // Width will be calculated at draw time, but use current aspect ratio for spawn positioning
+        const candymanWidth = candymanHeight * (candymanAspectRatio || 1);
+        const spawnableHeight =
+          canvas.height - topMargin - bottomMargin - candymanHeight;
+
+        // Always spawn Candyman in the vertical center of the playable area
+        // This ensures consistent difficulty - player always has equal room to dodge up or down
+        const yPos = topMargin + spawnableHeight / 2;
+
+        // FIXED speed: always takes exactly 4.5 seconds to cross screen for consistency
+        // At 60fps: 4.5 seconds = 270 frames
+        const crossTime = 270; // Fixed duration
+        const speed = canvas.width / crossTime;
+
+        gameState.enemies.push({
+          x: canvas.width,
+          y: yPos,
+          width: candymanWidth, // Width for collision detection (with proper aspect ratio)
+          height: candymanHeight, // Height for collision detection
+          speed: speed,
+          active: true,
+          imageIndex: 0, // Not used for Candyman
+          baseY: yPos,
+          verticalSpeed: 0, // Will be calculated dynamically to follow player
+          verticalDirection: 1,
+          maxUpOffset: 9999, // No limits - can follow player anywhere
+          maxDownOffset: 9999,
+          currentOffset: 0,
+          changeDirectionChance: 0,
+          isCandyman: true, // Mark as Candyman
+        });
+
+        gameState.lastCandymanSpawn = now;
       }
     };
 
@@ -712,18 +796,31 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
         playerImg.complete &&
         playerImg.naturalWidth > 0
       ) {
+        // Apply flashing effect when immobilized
+        // Flash four times over 4 seconds (240 frames)
+        // Each cycle: 30 frames at 100%, 30 frames at 50%
+        if (gameState.isImmobilized) {
+          const flashCycle = gameState.immobilizedFlashFrame % 30;
+          ctx.globalAlpha = flashCycle < 15 ? 1.0 : 0.5;
+        }
+
         // Draw body (50% bigger: 120x180)
         ctx.drawImage(playerImg, p.x, p.y, p.width, p.height);
 
         // Draw face on top of body
-        // Choose face based on timers (celebration or angry), otherwise normal
+        // Choose face based on timers (immobilized, celebration, angry), otherwise normal
         let faceImg = faceNormalImg;
         let faceLoaded = faceNormalLoaded;
         let faceOriginalWidth = faceNormalWidth;
         let faceOriginalHeight = faceNormalHeight;
 
-        // Priority: celebration face (4 hits), angry face (miss), normal (default)
-        if (gameState.celebrationTimer > 0 && faceCelebrationLoaded) {
+        // Priority: immobilized (sad), celebration face (4 hits), angry face (miss), normal (default)
+        if (gameState.isImmobilized && faceSadLoaded) {
+          faceImg = faceSadImg; // Sad face when immobilized
+          faceLoaded = faceSadLoaded;
+          faceOriginalWidth = faceSadWidth;
+          faceOriginalHeight = faceSadHeight;
+        } else if (gameState.celebrationTimer > 0 && faceCelebrationLoaded) {
           faceImg = faceCelebrationImg; // Celebration face for hitting 4 in a row
           faceLoaded = faceCelebrationLoaded;
           faceOriginalWidth = faceCelebrationWidth;
@@ -754,6 +851,9 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
           const faceY = p.y - faceHeight * 0.5 - 2 * playerScale; // Scale vertical offset
           ctx.drawImage(faceImg, faceX, faceY, faceWidth, faceHeight);
         }
+
+        // Reset opacity after drawing player
+        ctx.globalAlpha = 1;
       } else {
         // Fallback: Draw simple rectangle if image not loaded
         ctx.fillStyle = "#3B82F6";
@@ -905,6 +1005,19 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
           const enemySkeletonImg = enemySkeletonImages[enemy.imageIndex];
           const skeletonIsLoaded = enemySkeletonImagesLoaded[enemy.imageIndex];
 
+          // Recalculate width using actual loaded aspect ratio (fixes distortion on first spawns)
+          if (!enemy.isCandyman) {
+            const actualAspectRatio = enemyBodyAspectRatios[enemy.imageIndex];
+            if (actualAspectRatio && actualAspectRatio !== 1) {
+              enemy.width = enemy.height * actualAspectRatio;
+            }
+          } else {
+            // Candyman: recalculate width using actual aspect ratio
+            if (candymanAspectRatio && candymanAspectRatio !== 1) {
+              enemy.width = enemy.height * candymanAspectRatio;
+            }
+          }
+
           // Death animation logic
           if (enemy.isDying && enemy.deathFrame !== undefined) {
             const deathDuration = 135; // Death animation lasts 135 frames (~2250ms) - 50% slower
@@ -967,7 +1080,39 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
             ctx.restore();
           } else if (enemy.active) {
             // Normal enemy rendering
-            if (
+            if (enemy.isCandyman) {
+              // Draw Candyman sprite
+              if (
+                candymanLoaded &&
+                candymanImg.complete &&
+                candymanImg.naturalWidth > 0
+              ) {
+                ctx.drawImage(
+                  candymanImg,
+                  enemy.x,
+                  enemy.y,
+                  enemy.width,
+                  enemy.height
+                );
+              } else {
+                // Fallback: orange ellipse if image not loaded
+                const candymanSize = (234 * (gameState.playerScale || 1.0)) / 3;
+                const centerX = enemy.x + enemy.width / 2;
+                const centerY = enemy.y + enemy.height / 2;
+                ctx.fillStyle = "#FF8C00";
+                ctx.beginPath();
+                ctx.ellipse(
+                  centerX,
+                  centerY,
+                  candymanSize / 2,
+                  candymanSize / 2,
+                  0,
+                  0,
+                  Math.PI * 2
+                );
+                ctx.fill();
+              }
+            } else if (
               bodyIsLoaded &&
               enemyBodyImg &&
               enemyBodyImg.complete &&
@@ -999,6 +1144,9 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
         gameState.enemies.forEach((enemy) => {
           if (!enemy.active || enemy.isDying) return;
 
+          // Skip Candyman - cannot be shot
+          if (enemy.isCandyman) return;
+
           // Only allow hits on enemies that are fully visible (not still spawning at right edge)
           const enemyIsVisible = enemy.x + enemy.width < canvas.width;
 
@@ -1022,10 +1170,10 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
 
             gameState.consecutiveHits++; // Increment hit streak
 
-            // Trigger celebration face and supporter if player hits 5 in a row
-            if (gameState.consecutiveHits === 5) {
+            // Trigger celebration face and supporter if player hits 10 in a row
+            if (gameState.consecutiveHits === 10) {
               gameState.celebrationTimer = 120; // Show celebration face for 120 frames (~2 seconds)
-              gameState.consecutiveHits = 0; // Reset counter so player can get another 5-hit streak
+              gameState.consecutiveHits = 0; // Reset counter so player can get another 10-hit streak
 
               // Show supporter with positive message
               const randomImage =
@@ -1074,15 +1222,62 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
           }
         });
       });
+
+      // Check Candyman collision with player
+      if (!gameState.isImmobilized) {
+        const p = gameState.player;
+        gameState.enemies.forEach((enemy) => {
+          if (!enemy.active || !enemy.isCandyman) return;
+
+          // Create hitbox for Candyman's fists (left side of image, 40% down from top)
+          const fistHitboxWidth = enemy.width * 0.25; // 25% of image width for fist area
+          const fistHitboxHeight = enemy.height * 0.3; // 30% of image height for fist area
+          const fistHitboxX = enemy.x; // Left edge of image
+          const fistHitboxY =
+            enemy.y + enemy.height * 0.4 - fistHitboxHeight / 2; // Centered at 40% down
+
+          // Check if Candyman's fist hitbox collides with player
+          if (
+            p.x < fistHitboxX + fistHitboxWidth &&
+            p.x + p.width > fistHitboxX &&
+            p.y < fistHitboxY + fistHitboxHeight &&
+            p.y + p.height > fistHitboxY
+          ) {
+            // Immobilize player
+            gameState.isImmobilized = true;
+            gameState.immobilizedTimer = 240; // 4 seconds at 60fps
+            gameState.immobilizedFlashFrame = 0;
+
+            // Remove the Candyman that hit the player
+            enemy.active = false;
+          }
+        });
+      }
     };
 
     // Update game state
     const update = () => {
       const p = gameState.player;
 
-      // Track if player is actively moving
-      const isMovingUp = gameState.keys["w"] || gameState.keys["arrowup"];
-      const isMovingDown = gameState.keys["s"] || gameState.keys["arrowdown"];
+      // Update immobilization timer
+      if (gameState.isImmobilized) {
+        gameState.immobilizedTimer--;
+        gameState.immobilizedFlashFrame++;
+
+        if (gameState.immobilizedTimer <= 0) {
+          gameState.isImmobilized = false;
+          gameState.immobilizedTimer = 0;
+          gameState.immobilizedFlashFrame = 0;
+        }
+      }
+
+      // Track if player is actively moving (but not when immobilized)
+      const isMovingUp =
+        !gameState.isImmobilized &&
+        (gameState.keys["w"] || gameState.keys["arrowup"]);
+      const isMovingDown =
+        !gameState.isImmobilized &&
+        (gameState.keys["s"] || gameState.keys["arrowdown"]);
 
       // Player movement with inertia for both directions
       if (isMovingUp) {
@@ -1195,15 +1390,37 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
         if (!enemy.active) return false;
         enemy.x -= enemy.speed;
 
-        // Check if enemy escaped (went off left side while still active) - INSTANT LOSS!
-        if (enemy.active && enemy.x + enemy.width <= 0) {
-          // Enemy escaped without being killed - game over!
-          setIsGameOver(true);
-          setGameWon(false);
+        // Remove enemies that have escaped off screen (no penalty)
+        if (enemy.x + enemy.width <= 0) {
           return false; // Remove the enemy
         }
 
-        // Check if enemy should avoid the player
+        // Special movement for Candyman: follow the player
+        if (enemy.isCandyman) {
+          const playerCenterY = p.y + p.height / 2;
+          const enemyCenterY = enemy.y + enemy.height / 2;
+          const verticalDistance = enemyCenterY - playerCenterY;
+
+          // Move towards player aggressively (70% harder to dodge)
+          const followSpeed = 0.8704; // 70% faster than baseline (0.512 * 1.7)
+          const deadZone = 12; // 70% smaller dead zone (40 * 0.3) - tracks player much more closely
+
+          if (Math.abs(verticalDistance) > deadZone) {
+            // Move towards player quickly and aggressively
+            if (verticalDistance > 0) {
+              // Enemy is below player, move up
+              enemy.y -= followSpeed;
+            } else {
+              // Enemy is above player, move down
+              enemy.y += followSpeed;
+            }
+          }
+
+          // Continue to next enemy
+          return enemy.x + enemy.width > 0;
+        }
+
+        // Check if enemy should avoid the player (regular enemies)
         const playerCenterY = p.y + p.height / 2;
         const enemyCenterY = enemy.y + enemy.height / 2;
         const verticalDistance = Math.abs(enemyCenterY - playerCenterY);
@@ -1325,6 +1542,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
       }
 
       spawnEnemy();
+      spawnCandyman();
       gameState.animationFrame++;
 
       // Update supporter animation
@@ -1420,29 +1638,15 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
     }
   }, [isPaused, isGameOver]);
 
-  // Timer countdown and check if all enemies are done
+  // Timer countdown
   useEffect(() => {
     // Don't run timer when paused or game over
     if (isPausedRef.current || isGameOverRef.current) return;
-    const gameState = gameStateRef.current;
-
-    // Check if all enemies have been spawned and processed
-    const allEnemiesSpawned = gameState.enemiesSpawned >= gameState.maxEnemies;
-    const allEnemiesProcessed = gameState.enemies.length === 0;
-
-    if (allEnemiesSpawned && allEnemiesProcessed) {
-      // All dogs have passed - only win if player got all 100
-      const won = score === 100;
-      setIsGameOver(true);
-      setGameWon(won);
-      return;
-    }
 
     if (timeLeft <= 0) {
-      // Time ran out - only win if player got all 100
-      const won = score === 100;
+      // Time's up - always show victory screen
       setIsGameOver(true);
-      setGameWon(won);
+      setGameWon(true);
       return;
     }
 
@@ -1451,7 +1655,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeLeft, score]);
+  }, [timeLeft]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -1490,7 +1694,8 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
   const handleRestart = () => {
     // Reset all game state
     setScore(0);
-    setTimeLeft(80);
+    setEnemiesSpawned(0);
+    setTimeLeft(120);
     setIsGameOver(false);
     setGameWon(false);
     setSupporterDisplay(null);
@@ -1609,9 +1814,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
           <span className="text-[#f9c600] mr-3 font-['Pixelify_Sans']">
             SCORE:
           </span>
-          <span className="text-[#f9c600] font-['Pixelify_Sans']">
-            {score}/{totalEnemies}
-          </span>
+          <span className="text-[#f9c600] font-['Pixelify_Sans']">{score}</span>
         </div>
       </div>
 
@@ -1682,70 +1885,99 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
       )}
 
       {/* Game Over Overlay */}
-      {isGameOver && (
-        <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-gradient-to-b from-[rgba(16,18,28,0.95)] to-[#10121c] rounded-xl p-12 max-w-2xl text-center shadow-2xl">
-            <h1
-              className="font-['Pixelify_Sans'] mb-6"
-              style={{
-                fontSize: "48px",
-                textShadow: "4px 4px 0px #000",
-                color: gameWon ? "#f9c600" : "#ef4444",
-              }}
-            >
-              {gameWon ? "VICTORY!" : "MISSION FAILED"}
-            </h1>
-            {gameWon ? (
-              <p className="font-['Pixelify_Sans'] text-white/80 mb-8 text-[20px]">
-                All 100 doggos have been neutralized and are on their way back
-                to prison where their dangerous beliefs can't hurt anyone. Thank
-                you for serving your country, comrade!
-              </p>
-            ) : (
-              <>
-                {/* Score Display - only show on loss */}
+      {isGameOver &&
+        (() => {
+          // Calculate rank based on number of hits
+          let rank = "D";
+          if (score >= 200) rank = "S";
+          else if (score >= 150) rank = "A";
+          else if (score >= 100) rank = "B";
+          else if (score >= 50) rank = "C";
+
+          return (
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-50">
+              <div className="bg-gradient-to-b from-[rgba(16,18,28,0.95)] to-[#10121c] rounded-xl p-12 max-w-2xl text-center shadow-2xl">
+                <h1
+                  className="font-['Pixelify_Sans'] mb-6"
+                  style={{
+                    fontSize: "48px",
+                    textShadow: "4px 4px 0px #000",
+                    color: "#f9c600",
+                  }}
+                >
+                  TIME'S UP!
+                </h1>
+
+                {/* Rank Display */}
+                <div className="mb-6">
+                  <div className="font-['Pixelify_Sans'] text-white text-[20px] mb-2">
+                    RANK:
+                  </div>
+                  <div
+                    className="font-['Pixelify_Sans'] inline-block px-8 py-4 rounded-lg"
+                    style={{
+                      fontSize: "64px",
+                      textShadow: "4px 4px 0px #000",
+                      color:
+                        rank === "S"
+                          ? "#ffd700"
+                          : rank === "A"
+                          ? "#60a5fa"
+                          : rank === "B"
+                          ? "#34d399"
+                          : rank === "C"
+                          ? "#9ca3af"
+                          : "#f87171",
+                      backgroundColor: "rgba(0,0,0,0.3)",
+                    }}
+                  >
+                    {rank}
+                  </div>
+                </div>
+
+                {/* Score Display */}
                 <div className="mb-6">
                   <div className="flex items-center justify-center gap-4">
                     <span className="font-['Pixelify_Sans'] text-white text-[20px]">
                       FINAL SCORE:
                     </span>
                     <div className="font-['Pixelify_Sans'] text-white text-[20px]">
-                      {score}/{totalEnemies}
+                      {score}
                     </div>
                   </div>
                 </div>
 
-                <p className="font-['Pixelify_Sans'] text-white/80 mb-8 text-[20px]">
-                  One doggo got away and is spreading canine fascism as we
-                  speak. This is worse than January 6th. Your failure has caused
-                  irreparable damage to our democracy!
+                {/* end screen message */}
+                <p className="font-['Pixelify_Sans'] text-white/70 mb-8 text-[20px] min-[1400px]:text-[24px] max-w-[1146px] mx-auto">
+                  These Doggos have been neutralized and are on their way back
+                  to prison where their dangerous beliefs can't hurt anyone.
+                  Thank you for serving your country, comrade!
                 </p>
-              </>
-            )}
 
-            <div className="flex gap-6 justify-center">
-              <button
-                onClick={handleRestart}
-                className="bg-[#fbc600] box-border flex gap-[10px] items-center justify-center overflow-clip pb-[14px] pt-[11px] px-[28px] rounded-[8px] cursor-pointer hover:bg-[#e5b300] hover:-translate-y-[10px] transition-all duration-200 relative"
-              >
-                <span className="font-['Pixelify_Sans'] font-normal leading-[normal] text-[#0f111c] text-[28px] text-center text-nowrap whitespace-pre">
-                  {gameWon ? "Play Again" : "Try Again"}
-                </span>
-                <div className="absolute inset-0 pointer-events-none shadow-[0px_-6px_0px_0px_inset_rgba(0,0,0,0.1)]" />
-              </button>
-              <button
-                onClick={onQuit}
-                className="bg-[#dc2626] box-border flex gap-[10px] items-center justify-center overflow-clip pb-[14px] pt-[11px] px-[28px] rounded-[8px] cursor-pointer hover:bg-[#b91c1c] hover:-translate-y-[10px] transition-all duration-200 relative"
-              >
-                <span className="font-['Pixelify_Sans'] font-normal leading-[normal] text-white text-[28px] text-center text-nowrap whitespace-pre">
-                  Quit
-                </span>
-                <div className="absolute inset-0 pointer-events-none shadow-[0px_-6px_0px_0px_inset_rgba(0,0,0,0.1)]" />
-              </button>
+                <div className="flex gap-6 justify-center">
+                  <button
+                    onClick={handleRestart}
+                    className="bg-[#fbc600] box-border flex gap-[10px] items-center justify-center overflow-clip pb-[14px] pt-[11px] px-[28px] rounded-[8px] cursor-pointer hover:bg-[#e5b300] hover:-translate-y-[10px] transition-all duration-200 relative"
+                  >
+                    <span className="font-['Pixelify_Sans'] font-normal leading-[normal] text-[#0f111c] text-[28px] text-center text-nowrap whitespace-pre">
+                      Play Again
+                    </span>
+                    <div className="absolute inset-0 pointer-events-none shadow-[0px_-6px_0px_0px_inset_rgba(0,0,0,0.1)]" />
+                  </button>
+                  <button
+                    onClick={onQuit}
+                    className="bg-[#dc2626] box-border flex gap-[10px] items-center justify-center overflow-clip pb-[14px] pt-[11px] px-[28px] rounded-[8px] cursor-pointer hover:bg-[#b91c1c] hover:-translate-y-[10px] transition-all duration-200 relative"
+                  >
+                    <span className="font-['Pixelify_Sans'] font-normal leading-[normal] text-white text-[28px] text-center text-nowrap whitespace-pre">
+                      Quit
+                    </span>
+                    <div className="absolute inset-0 pointer-events-none shadow-[0px_-6px_0px_0px_inset_rgba(0,0,0,0.1)]" />
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          );
+        })()}
     </div>
   );
 }

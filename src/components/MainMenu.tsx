@@ -1,11 +1,11 @@
 import Frame17 from "../imports/Frame17";
 
 // Background asset
-const backgroundImage = "https://files.catbox.moe/xnu9u9.jpg";
+const backgroundImage = "https://i.imgur.com/FBGihp5.jpeg";
 
 // Main menu images
-const characterImage = "https://files.catbox.moe/sznke8.png";
-const enemiesImage = "https://files.catbox.moe/mpcvwc.png";
+const characterImage = "https://i.imgur.com/sZYiMBR.png";
+const enemiesImage = "https://i.imgur.com/feD8w02.png";
 
 interface MainMenuProps {
   onStart: () => void;

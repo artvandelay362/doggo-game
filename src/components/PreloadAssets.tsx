@@ -7,47 +7,53 @@ interface PreloadAssetsProps {
 // All asset URLs used in the game
 const ASSET_URLS = [
   // Background
-  "https://files.catbox.moe/xnu9u9.jpg", // background image
+  "https://i.imgur.com/FBGihp5.jpeg", // background image
+
+  // Logo
+  "https://i.imgur.com/6BF7IES.png", // logo
 
   // Main menu images
-  "https://files.catbox.moe/sznke8.png", // character left
-  "https://files.catbox.moe/mpcvwc.png", // enemies right
+  "https://i.imgur.com/sZYiMBR.png", // character left
+  "https://i.imgur.com/feD8w02.png", // enemies right
 
   // Character assets
-  "https://files.catbox.moe/bvvqko.png", // player body
-  "https://files.catbox.moe/i2sb95.png", // face normal
-  "https://files.catbox.moe/nqcsuf.png", // face angry
-  "https://files.catbox.moe/so7gd2.png", // face laugh
-  "https://files.catbox.moe/m869pf.png", // face sad
+  "https://i.imgur.com/lxKF9yl.png", // player body
+  "https://i.imgur.com/fgGOeWQ.png", // face normal
+  "https://i.imgur.com/qN9QWLP.png", // face angry
+  "https://i.imgur.com/jFHPAPI.png", // face celebration
+  "https://i.imgur.com/pdMRPT4.png", // face sad
 
   // Flame assets
-  "https://files.catbox.moe/e5ab92.png", // big flame
-  "https://files.catbox.moe/jushle.png", // small flame
+  "https://i.imgur.com/Zi2RUky.png", // flame 1
+  "https://i.imgur.com/z4eVz5y.png", // flame 2
 
   // Enemy assets - bodies and skeletons
-  "https://files.catbox.moe/00s5pt.png", // dog 1 body
-  "https://files.catbox.moe/f67c94.png", // dog 1 skeleton
-  "https://files.catbox.moe/k0q1ft.png", // dog 2 body
-  "https://files.catbox.moe/f67c94.png", // dog 2 skeleton
-  "https://files.catbox.moe/ai63gz.png", // dog 3 body
-  "https://files.catbox.moe/g7l128.png", // dog 3 skeleton
-  "https://files.catbox.moe/c1d65d.png", // dog 4 body
-  "https://files.catbox.moe/61cgwu.png", // dog 4 skeleton
-  "https://files.catbox.moe/6p7mgx.png", // dog 5 body
-  "https://files.catbox.moe/u3dh32.png", // dog 5 skeleton
-  "https://files.catbox.moe/v4btq9.png", // dog 6 body
-  "https://files.catbox.moe/dv36tf.png", // dog 6 skeleton
+  "https://i.imgur.com/3pDVzgY.png", // dog 1 body
+  "https://i.imgur.com/w79dL4z.png", // dog 1 skeleton
+  "https://i.imgur.com/KMI8jai.png", // dog 2 body
+  "https://i.imgur.com/sEOeaJW.png", // dog 2 skeleton
+  "https://i.imgur.com/y7nQKAa.png", // dog 3 body
+  "https://i.imgur.com/PgrzdHV.png", // dog 3 skeleton
+  "https://i.imgur.com/RdrhxiZ.png", // dog 4 body
+  "https://i.imgur.com/dmaqSfS.png", // dog 4 skeleton
+  "https://i.imgur.com/AqwVE6g.png", // dog 5 body
+  "https://i.imgur.com/UeJuVh8.png", // dog 5 skeleton
+  "https://i.imgur.com/pMiHO68.png", // dog 6 body
+  "https://i.imgur.com/YfsvMnf.png", // dog 6 skeleton
+
+  // Candyman enemy
+  "https://i.imgur.com/pGNfvXC.png", // candyman
 
   // Supporter images
-  "https://files.catbox.moe/or7bjw.png", // supporter 1
-  "https://files.catbox.moe/bf5fqm.png", // supporter 2
-  "https://files.catbox.moe/vs4zar.png", // supporter 3
-  "https://files.catbox.moe/b6q79p.png", // supporter 4
-  "https://files.catbox.moe/32zdjd.png", // supporter 5
-  "https://files.catbox.moe/12yovi.png", // supporter 6
-  "https://files.catbox.moe/ez40p6.png", // supporter 7
-  "https://files.catbox.moe/ep5odv.png", // supporter 8
-  "https://files.catbox.moe/ktij84.png", // supporter 9
+  "https://i.imgur.com/mLQbZOy.png", // supporter 1
+  "https://i.imgur.com/Fyaps4u.png", // supporter 2
+  "https://i.imgur.com/fEUMoMB.png", // supporter 3
+  "https://i.imgur.com/VIhn9nj.png", // supporter 4
+  "https://i.imgur.com/tCTXnVr.png", // supporter 5
+  "https://i.imgur.com/UM8AITa.png", // supporter 6
+  "https://i.imgur.com/WRrXXNd.png", // supporter 7
+  "https://i.imgur.com/Lp3A9A5.png", // supporter 8
+  "https://i.imgur.com/txad79x.png", // supporter 9
 ];
 
 export default function PreloadAssets({ children }: PreloadAssetsProps) {

@@ -1,5 +1,5 @@
-// Use compressed logo from catbox
-const imgImage4 = "https://files.catbox.moe/kqkmuj.png";
+// Use logo from imgur
+const imgImage4 = "https://i.imgur.com/6BF7IES.png";
 
 interface Frame21Props {
   onClick?: () => void;
@@ -60,14 +60,14 @@ function Frame20({ onStart }: Frame20Props) {
           Sorry to get you away from streaming, but we need your help!
         </p>
         <p className="mb-[18px] min-[1400px]:mb-[24px]">
-          100 Doggos have escaped from prison. They are there for some serious
-          crimes, like: misgendering, not being pro-immigration, and not liking
-          Taylor Swift.
+          Hundreds of Doggos have escaped from prison. They are there for some
+          serious crimes, like: misgendering, not being pro-immigration, and not
+          liking Taylor Swift.
         </p>
-        <p className="mb-[18px] min-[1400px]:mb-[24px]">{`If they are not stopped, these Doggos will roam free and spread fascism all over the world. Your mission is to use your zap gun to non-lethally neutralize them. `}</p>
+        <p className="mb-[18px] min-[1400px]:mb-[24px]">{`If they are not stopped, these Doggos will roam free and spread facism all over the world. Your mission is to use your zap gun to non-lethally neutralize them. `}</p>
         <p>
-          The right comrade at the right time can make all the difference in the
-          world. Are you ready?
+          Be careful though. An evil MAGA villain called The Candyman will try
+          to stop you. Are you ready to fight fascism?
         </p>
       </div>
 
