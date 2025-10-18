@@ -167,10 +167,12 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
 
   // Sync isPaused, isGameOver, and supporterDisplay state with refs
   useEffect(() => {
+    console.log(`⏸️ isPaused state changed: ${isPaused}`);
     isPausedRef.current = isPaused;
   }, [isPaused]);
 
   useEffect(() => {
+    console.log(`🏁 isGameOver state changed: ${isGameOver}`);
     isGameOverRef.current = isGameOver;
   }, [isGameOver]);
 
@@ -178,12 +180,20 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
     supporterDisplayRef.current = supporterDisplay;
   }, [supporterDisplay]);
 
+  // Log timeLeft changes
   useEffect(() => {
+    console.log(`⏱️ timeLeft state changed to: ${timeLeft}`);
+  }, [timeLeft]);
+
+  useEffect(() => {
+    console.log("🎮 GamePlay component mounted, initializing game...");
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+
+    console.log("🎮 Canvas initialized, starting game setup");
 
     // Start playing background music
     if (audioRef.current) {
@@ -479,7 +489,10 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
       // Handle ESC key for pause
       if (e.key === "Escape") {
         e.preventDefault();
-        setIsPaused((prev) => !prev);
+        setIsPaused((prev) => {
+          console.log(`⏸️ PAUSE toggled: ${prev} -> ${!prev}`);
+          return !prev;
+        });
         return;
       }
 
@@ -1637,20 +1650,38 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
 
   // Timer countdown
   useEffect(() => {
-    // Don't run timer when paused or game over
-    if (isPausedRef.current || isGameOverRef.current) return;
+    console.log(
+      `⏱️ Timer effect triggered - timeLeft: ${timeLeft}, isPaused: ${isPausedRef.current}, isGameOver: ${isGameOverRef.current}`
+    );
 
     if (timeLeft <= 0) {
       // Time's up - always show victory screen
+      console.log("⏱️ Time reached 0, setting game over");
       setIsGameOver(true);
       return;
     }
 
     const timer = setInterval(() => {
-      setTimeLeft((prev) => prev - 1);
+      // Check pause/game over state inside the interval
+      if (isPausedRef.current || isGameOverRef.current) {
+        console.log("⏱️ Timer interval skipped (paused or game over)");
+        return; // Skip this tick, but keep interval running
+      }
+
+      console.log("⏱️ Timer tick - decrementing from", timeLeft);
+      setTimeLeft((prev) => {
+        const newTime = prev - 1;
+        console.log(`⏱️ Time updated: ${prev} -> ${newTime}`);
+        return newTime;
+      });
     }, 1000);
 
-    return () => clearInterval(timer);
+    console.log(`⏱️ Timer interval created (ID: ${timer})`);
+
+    return () => {
+      console.log(`⏱️ Cleaning up timer interval (ID: ${timer})`);
+      clearInterval(timer);
+    };
   }, [timeLeft]);
 
   const formatTime = (seconds: number) => {
@@ -1688,6 +1719,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
   };
 
   const handleRestart = () => {
+    console.log("🔄 RESTART: Resetting all game state");
     // Reset all game state
     setScore(0);
     setTimeLeft(120);
@@ -1703,6 +1735,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
     gameStateRef.current.celebrationTimer = 0;
     gameStateRef.current.animationFrame = 0; // Reset animation frame counter
     gameStateRef.current.lastSpawnedDogIndex = -1; // Reset last spawned dog
+    console.log("🔄 RESTART: Complete - timeLeft reset to 120");
   };
 
   return (
