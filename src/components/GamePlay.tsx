@@ -47,7 +47,7 @@ const enemyTypes = [
     skeleton: "https://i.imgur.com/sEOeaJW.png",
   },
   {
-    body: "https://i.imgur.com/y7nQKAa.png",
+    body: "https://i.imgur.com/U25fthU.png",
     skeleton: "https://i.imgur.com/PgrzdHV.png",
   },
   {
