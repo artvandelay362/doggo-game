@@ -47,7 +47,7 @@ const enemyTypes = [
     skeleton: "https://i.imgur.com/sEOeaJW.png",
   },
   {
-    body: "https://i.imgur.com/U25fthU.png",
+    body: "https://i.imgur.com/CQyVn5a.png",
     skeleton: "https://i.imgur.com/PgrzdHV.png",
   },
   {
@@ -857,16 +857,16 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
       }
     };
 
-    // Spawn Candyman enemy (first one after 10 seconds, then every 15-20 seconds)
+    // Spawn Candyman enemy (first one after 10 seconds, then every 12-15 seconds)
     const spawnCandyman = () => {
       const now = Date.now();
 
       // First Candyman: wait 10 seconds (gives audio time to load and player to get ready)
-      // Subsequent Candyman: random interval between 15-20 seconds (15000-20000 ms)
+      // Subsequent Candyman: random interval between 12-15 seconds (12000-15000 ms)
       const isFirstCandyman = !gameState.firstCandymanSpawned;
       const spawnInterval = isFirstCandyman
         ? 10000
-        : 15000 + Math.random() * 5000;
+        : 12000 + Math.random() * 3000;
 
       if (now - gameState.lastCandymanSpawn > spawnInterval) {
         // Mark that first Candyman has been spawned
