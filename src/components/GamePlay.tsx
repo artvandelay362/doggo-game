@@ -308,9 +308,11 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
     const referenceHeight = 900;
     const scale = canvas.height / referenceHeight;
     
-    // Apply scaling to both player and enemies
-    const playerScale = scale;
-    const enemyScale = scale;
+    // Apply scaling with size adjustments
+    // Player & Candyman: +30% larger
+    // Enemies (dogs): +25% larger
+    const playerScale = scale * 1.3;
+    const enemyScale = scale * 1.25;
 
     const enemyTargetHeight = 180 * enemyScale; // Base enemy height: 180px, scaled
 
@@ -2191,4 +2193,3 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
     </div>
   );
 }
-
