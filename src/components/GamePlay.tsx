@@ -10,11 +10,11 @@ const supporterImages = [
   "https://i.imgur.com/mLQbZOy.png",
   "https://i.imgur.com/Fyaps4u.png",
   "https://i.imgur.com/fEUMoMB.png",
-  "https://i.imgur.com/VIhn9nj.png",
   "https://i.imgur.com/tCTXnVr.png",
   "https://i.imgur.com/UM8AITa.png",
   "https://i.imgur.com/WRrXXNd.png",
   "https://i.imgur.com/Lp3A9A5.png",
+  "https://i.imgur.com/q62t07o.png",
   "https://i.imgur.com/txad79x.png",
 ];
 
@@ -115,7 +115,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
   const shootSound1Ref = useRef<HTMLAudioElement>(null); // 80% chance
   const shootSound2Ref = useRef<HTMLAudioElement>(null); // 20% chance
   const candymanHitSoundRef = useRef<HTMLAudioElement>(null); // Candyman hit sound
-
+  
   // Audio pools for instant playback without delay
   const hitSound1PoolRef = useRef<HTMLAudioElement[]>([]);
   const hitSound2PoolRef = useRef<HTMLAudioElement[]>([]);
@@ -131,8 +131,9 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
     shootSound2: 0,
     candymanHit: 0,
   });
-
+  
   const [score, setScore] = useState(0);
+  const scoreRef = useRef(0); // Use ref to avoid re-renders during gameplay
   const [timeLeft, setTimeLeft] = useState(120); // 120 seconds (2 minutes)
   const [volume, setVolume] = useState(30); // Volume from 0-100
   const [previousVolume, setPreviousVolume] = useState(30); // Store volume before muting
@@ -187,12 +188,10 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
 
   // Sync isPaused, isGameOver, and supporterDisplay state with refs
   useEffect(() => {
-    console.log(`⏸️ isPaused state changed: ${isPaused}`);
     isPausedRef.current = isPaused;
   }, [isPaused]);
 
   useEffect(() => {
-    console.log(`🏁 isGameOver state changed: ${isGameOver}`);
     isGameOverRef.current = isGameOver;
   }, [isGameOver]);
 
@@ -200,26 +199,17 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
     supporterDisplayRef.current = supporterDisplay;
   }, [supporterDisplay]);
 
-  // Log timeLeft changes
-  useEffect(() => {
-    console.log(`⏱️ timeLeft state changed to: ${timeLeft}`);
-  }, [timeLeft]);
+
 
   useEffect(() => {
-    console.log("🎮 GamePlay component mounted, initializing game...");
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    console.log("🎮 Canvas initialized, starting game setup");
-
     // Initialize audio pools (3 instances of each sound for instant playback)
-    const initAudioPool = (
-      src: string,
-      poolSize: number = 3
-    ): HTMLAudioElement[] => {
+    const initAudioPool = (src: string, poolSize: number = 3): HTMLAudioElement[] => {
       const pool: HTMLAudioElement[] = [];
       for (let i = 0; i < poolSize; i++) {
         const audio = new Audio(src);
@@ -232,76 +222,58 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
       return pool;
     };
 
-    hitSound1PoolRef.current = initAudioPool(
-      "https://files.catbox.moe/9q9cj2.mp3"
-    );
-    hitSound2PoolRef.current = initAudioPool(
-      "https://files.catbox.moe/k070y2.mp3"
-    );
-    hitSound3PoolRef.current = initAudioPool(
-      "https://files.catbox.moe/xeapud.mp3"
-    );
-    shootSound1PoolRef.current = initAudioPool(
-      "https://files.catbox.moe/qm4nuo.mp3"
-    );
-    shootSound2PoolRef.current = initAudioPool(
-      "https://files.catbox.moe/cp0rjm.mp3"
-    );
-    candymanHitSoundPoolRef.current = initAudioPool(
-      "https://files.catbox.moe/udwke3.mp3"
-    );
+    hitSound1PoolRef.current = initAudioPool("https://files.catbox.moe/9q9cj2.mp3");
+    hitSound2PoolRef.current = initAudioPool("https://files.catbox.moe/k070y2.mp3");
+    hitSound3PoolRef.current = initAudioPool("https://files.catbox.moe/xeapud.mp3");
+    shootSound1PoolRef.current = initAudioPool("https://files.catbox.moe/qm4nuo.mp3");
+    shootSound2PoolRef.current = initAudioPool("https://files.catbox.moe/cp0rjm.mp3");
+    candymanHitSoundPoolRef.current = initAudioPool("https://files.catbox.moe/udwke3.mp3");
 
     // Setup background music with aggressive autoplay strategy
     if (audioRef.current) {
       audioRef.current.volume = 0.3 * 0.8; // Set initial volume to 30% (with 20% max reduction)
       audioRef.current.load(); // Preload the audio
-
+      
       // Function to attempt starting music
       const tryStartMusic = () => {
         if (!musicStartedRef.current && audioRef.current) {
-          audioRef.current
-            .play()
-            .then(() => {
-              console.log("✅ Background music started!");
-              musicStartedRef.current = true;
-            })
-            .catch(() => {
-              // Silent fail - will retry on next interaction
-            });
+          audioRef.current.play().then(() => {
+            musicStartedRef.current = true;
+          }).catch(() => {
+            // Silent fail - will retry on next interaction
+          });
         }
       };
-
+      
       // Try immediately (might work if user just clicked Start button)
       tryStartMusic();
-
+      
       // If that didn't work, try on any user interaction
-      const interactions = ["click", "keydown", "mousedown", "touchstart"];
+      const interactions = ['click', 'keydown', 'mousedown', 'touchstart'];
       const startMusicOnInteraction = () => {
         if (!musicStartedRef.current) {
           tryStartMusic();
         }
         // Remove listeners once music starts
         if (musicStartedRef.current) {
-          interactions.forEach((event) => {
+          interactions.forEach(event => {
             window.removeEventListener(event, startMusicOnInteraction);
           });
         }
       };
-
+      
       // Add listeners for all interaction types
-      interactions.forEach((event) => {
-        window.addEventListener(event, startMusicOnInteraction, {
-          once: false,
-        });
+      interactions.forEach(event => {
+        window.addEventListener(event, startMusicOnInteraction, { once: false });
       });
-
+      
       // Cleanup function to remove listeners if component unmounts
       const cleanupMusicListeners = () => {
-        interactions.forEach((event) => {
+        interactions.forEach(event => {
           window.removeEventListener(event, startMusicOnInteraction);
         });
       };
-
+      
       // Store cleanup function for later
       (window as any).__cleanupMusicListeners = cleanupMusicListeners;
     }
@@ -329,33 +301,14 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
 
     const enemyTargetHeight = 180 * enemyScale; // Base enemy height: 180px, scaled
 
-    console.log(`🎮 Canvas dimensions: ${canvas.width}x${canvas.height}`);
-    console.log(`🎮 Player scale: ${playerScale}x`);
-    console.log(
-      `🎮 Player size will be: ${156 * playerScale}x${234 * playerScale}px`
-    );
-    console.log(`🎮 Enemy scale: ${enemyScale}x`);
-    console.log(`🎮 Enemy size will be: ~${enemyTargetHeight}px tall`);
-
     gameState.player.width = 156 * playerScale;
     gameState.player.height = 234 * playerScale;
     gameState.playerScale = playerScale; // Store for face scaling
 
-    // Scale player speed based on viewport height for consistent difficulty
-    // Small screens boosted by 10%: minimum 0.88x instead of 0.8x
-    const baseSpeed = 2.0;
-    const referenceHeight = 900; // Balanced at this height
-    const speedMultiplier = Math.max(
-      0.88,
-      Math.min(1.1, canvas.height / referenceHeight)
-    );
-    gameState.player.speed = baseSpeed * speedMultiplier;
-
-    console.log(
-      `🎮 Player speed multiplier: ${speedMultiplier.toFixed(
-        2
-      )}x (${gameState.player.speed.toFixed(2)} px/frame)`
-    );
+    // Time-based player speed for consistent difficulty across all screen sizes
+    // Player should take exactly 3.08 seconds to move from top to bottom (30% faster than original 4s)
+    const playerMoveDuration = 185; // 3.08 seconds at 60fps (30% faster)
+    gameState.player.speed = canvas.height / playerMoveDuration;
 
     // Set initial player Y position to center of canvas
     gameState.player.y = canvas.height / 2 - gameState.player.height / 2;
@@ -592,10 +545,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
       // Handle ESC key for pause
       if (e.key === "Escape") {
         e.preventDefault();
-        setIsPaused((prev) => {
-          console.log(`⏸️ PAUSE toggled: ${prev} -> ${!prev}`);
-          return !prev;
-        });
+        setIsPaused((prev) => !prev);
         return;
       }
 
@@ -641,20 +591,20 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
       poolKey: keyof typeof audioPoolIndexRef.current
     ) => {
       if (pool.length === 0) return;
-
+      
       // Get next audio element from pool (round-robin)
       const index = audioPoolIndexRef.current[poolKey];
       const audio = pool[index];
-
+      
       // Update index for next time
       audioPoolIndexRef.current[poolKey] = (index + 1) % pool.length;
-
+      
       // Update volume to match current game volume
       audio.volume = (volume / 100) * 0.8;
-
+      
       // Reset to start and play
       audio.currentTime = 0;
-
+      
       // Play with error handling
       const playPromise = audio.play();
       if (playPromise !== undefined) {
@@ -662,19 +612,9 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
           // If audio isn't ready yet, try to load it first
           if (audio.readyState < 2) {
             audio.load();
-            audio.addEventListener(
-              "canplaythrough",
-              () => {
-                audio
-                  .play()
-                  .catch((e) =>
-                    console.log("Delayed sound playback failed:", e)
-                  );
-              },
-              { once: true }
-            );
-          } else {
-            console.log("Sound playback failed:", error);
+            audio.addEventListener('canplaythrough', () => {
+              audio.play().catch(() => {});
+            }, { once: true });
           }
         });
       }
@@ -686,7 +626,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
       if (gameState.isImmobilized) return;
 
       const now = Date.now();
-      if (now - gameState.lastShot > 300) {
+      if (now - gameState.lastShot > 380) {
         // Fire rate limit
         const startX = gameState.player.x + gameState.player.width - 20;
         const startY = gameState.player.y + gameState.player.height * 0.28 - 5;
@@ -705,8 +645,8 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
 
         // Trigger recoil animation
         gameState.recoilProgress = 0; // Start animation from beginning
-        gameState.recoilMaxOffsetX = -20; // Move back 20 pixels
-        gameState.recoilMaxOffsetY = -8; // Move up 8 pixels
+        gameState.recoilMaxOffsetX = -15; // Move back 15 pixels (40% less than 25 pixels)
+        gameState.recoilMaxOffsetY = 0; // No vertical recoil
 
         // Play random shoot sound based on probability
         // 80% chance for sound 1, 20% chance for sound 2
@@ -727,8 +667,8 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
       if (gameState.enemiesSpawned >= gameState.maxEnemies) return;
 
       const now = Date.now();
-      if (now - gameState.lastEnemySpawn > 500) {
-        // Spawn every 0.5 seconds
+      if (now - gameState.lastEnemySpawn > 540) {
+        // Spawn every 0.54 seconds
         // Find a Y position that doesn't conflict with existing enemies
         let yPos = 0;
         let attempts = 0;
@@ -784,60 +724,71 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
           const enemyHeight = enemyTargetHeight;
 
           // Create chaotic, random vertical movement patterns
+          // Scale vertical speed based on canvas height for consistent visual speed
+          const verticalSpeedScale = canvas.height / 900; // Reference height: 900px
           const movementType = Math.random();
           let maxUp, maxDown, vSpeed, initialDirection, changeChance;
 
           if (movementType < 0.05) {
             // Only moves down - slow drift (5% chance)
             maxUp = 0;
-            maxDown = 40 + Math.random() * 60; // 40-100 pixels down
-            vSpeed = 0.1 + Math.random() * 0.2; // 0.1-0.3 pixels per frame (slow)
+            maxDown = (40 + Math.random() * 60) * verticalSpeedScale; // 40-100 pixels down (scaled)
+            vSpeed = (0.1 + Math.random() * 0.2) * verticalSpeedScale;
             initialDirection = -1;
             changeChance = 0.001; // Very rarely changes (stays going down)
           } else if (movementType < 0.1) {
             // Only moves up - slow rise (5% chance)
-            maxUp = 40 + Math.random() * 60; // 40-100 pixels up
+            maxUp = (40 + Math.random() * 60) * verticalSpeedScale; // 40-100 pixels up (scaled)
             maxDown = 0;
-            vSpeed = 0.1 + Math.random() * 0.2;
+            vSpeed = (0.1 + Math.random() * 0.2) * verticalSpeedScale;
             initialDirection = 1;
             changeChance = 0.001;
-          } else if (movementType < 0.3) {
-            // Big up, small down (like 50% up, 10% down) (20% chance)
-            maxUp = 60 + Math.random() * 80; // 60-140 pixels up
-            maxDown = 5 + Math.random() * 15; // 5-20 pixels down
-            vSpeed = 0.15 + Math.random() * 0.25; // 0.15-0.4 pixels per frame
+          } else if (movementType < 0.25) {
+            // Big up, small down (like 50% up, 10% down) (15% chance)
+            maxUp = (60 + Math.random() * 80) * verticalSpeedScale; // 60-140 pixels up (scaled)
+            maxDown = (5 + Math.random() * 15) * verticalSpeedScale; // 5-20 pixels down (scaled)
+            vSpeed = (0.15 + Math.random() * 0.25) * verticalSpeedScale;
             initialDirection = Math.random() > 0.5 ? 1 : -1;
             changeChance = 0.008 + Math.random() * 0.008; // 0.8-1.6% chance per frame (once per ~60-125 frames)
-          } else if (movementType < 0.5) {
-            // Small up, big down (20% chance)
-            maxUp = 5 + Math.random() * 15; // 5-20 pixels up
-            maxDown = 60 + Math.random() * 80; // 60-140 pixels down
-            vSpeed = 0.15 + Math.random() * 0.25;
+          } else if (movementType < 0.4) {
+            // Small up, big down (15% chance)
+            maxUp = (5 + Math.random() * 15) * verticalSpeedScale; // 5-20 pixels up (scaled)
+            maxDown = (60 + Math.random() * 80) * verticalSpeedScale; // 60-140 pixels down (scaled)
+            vSpeed = (0.15 + Math.random() * 0.25) * verticalSpeedScale;
             initialDirection = Math.random() > 0.5 ? 1 : -1;
             changeChance = 0.008 + Math.random() * 0.008;
           } else if (movementType < 0.75) {
-            // Erratic movement - changes direction but not too frequently (25% chance)
-            maxUp = 20 + Math.random() * 50;
-            maxDown = 20 + Math.random() * 50;
-            vSpeed = 0.2 + Math.random() * 0.3; // 0.2-0.5 pixels per frame
+            // Erratic movement - changes direction but not too frequently (35% chance)
+            maxUp = (20 + Math.random() * 50) * verticalSpeedScale; // scaled
+            maxDown = (20 + Math.random() * 50) * verticalSpeedScale; // scaled
+            vSpeed = (0.2 + Math.random() * 0.3) * verticalSpeedScale;
             initialDirection = Math.random() > 0.5 ? 1 : -1;
             changeChance = 0.012 + Math.random() * 0.004; // 1.2-1.6% chance - max once per second
           } else {
             // Balanced bobbing (25% chance)
-            const range = 30 + Math.random() * 40;
+            const range = (30 + Math.random() * 40) * verticalSpeedScale; // scaled
             maxUp = range;
             maxDown = range;
-            vSpeed = 0.12 + Math.random() * 0.2; // 0.12-0.32 pixels per frame
+            vSpeed = (0.12 + Math.random() * 0.2) * verticalSpeedScale;
             initialDirection = Math.random() > 0.5 ? 1 : -1;
             changeChance = 0.008 + Math.random() * 0.008; // 0.8-1.6% chance
           }
+
+          // Time-based speed: enemies take 3.7 seconds with variation
+          // 3.7 seconds = 222 frames at 60fps
+          // Variation: 0.1-1 second (6-60 frames)
+          // 70% faster (2.7-3.6s), 30% slower (3.8-4.7s)
+          const baseCrossTime = 222; // 3.7 seconds
+          const variation = 6 + Math.random() * 54; // 6-60 frames
+          const crossTime = baseCrossTime + (Math.random() < 0.3 ? variation : -variation);
+          const enemySpeed = canvas.width / crossTime;
 
           gameState.enemies.push({
             x: canvas.width,
             y: yPos,
             width: enemyHeight * (enemyBodyAspectRatios[randomImageIndex] || 1), // Calculate with current aspect ratio
             height: enemyHeight,
-            speed: 2.1 + Math.random() * 2.9,
+            speed: enemySpeed,
             active: true,
             imageIndex: randomImageIndex,
             baseY: yPos,
@@ -860,13 +811,11 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
     // Spawn Candyman enemy (first one after 10 seconds, then every 12-15 seconds)
     const spawnCandyman = () => {
       const now = Date.now();
-
+      
       // First Candyman: wait 10 seconds (gives audio time to load and player to get ready)
       // Subsequent Candyman: random interval between 12-15 seconds (12000-15000 ms)
       const isFirstCandyman = !gameState.firstCandymanSpawned;
-      const spawnInterval = isFirstCandyman
-        ? 10000
-        : 12000 + Math.random() * 3000;
+      const spawnInterval = isFirstCandyman ? 10000 : 12000 + Math.random() * 3000;
 
       if (now - gameState.lastCandymanSpawn > spawnInterval) {
         // Mark that first Candyman has been spawned
@@ -885,9 +834,9 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
         // This ensures consistent difficulty - player always has equal room to dodge up or down
         const yPos = topMargin + spawnableHeight / 2;
 
-        // FIXED speed: always takes exactly 4.5 seconds to cross screen for consistency
-        // At 60fps: 4.5 seconds = 270 frames
-        const crossTime = 270; // Fixed duration
+        // FIXED speed: always takes exactly 1.84 seconds to cross screen for consistency (15% slower than before)
+        // At 60fps: 1.84 seconds = 110 frames
+        const crossTime = 110; // Fixed duration
         const speed = canvas.width / crossTime;
 
         gameState.enemies.push({
@@ -1160,30 +1109,17 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
           const enemySkeletonImg = enemySkeletonImages[enemy.imageIndex];
           const skeletonIsLoaded = enemySkeletonImagesLoaded[enemy.imageIndex];
 
-          // Recalculate width using actual loaded aspect ratio (fixes distortion on first spawns)
-          if (!enemy.isCandyman) {
-            const actualAspectRatio = enemyBodyAspectRatios[enemy.imageIndex];
-            if (actualAspectRatio && actualAspectRatio !== 1) {
-              enemy.width = enemy.height * actualAspectRatio;
-            }
-          } else {
-            // Candyman: recalculate width using actual aspect ratio
-            if (candymanAspectRatio && candymanAspectRatio !== 1) {
-              enemy.width = enemy.height * candymanAspectRatio;
-            }
-          }
-
           // Death animation logic
           if (enemy.isDying && enemy.deathFrame !== undefined) {
-            const deathDuration = 135; // Death animation lasts 135 frames (~2250ms) - 50% slower
+            const deathDuration = 99; // Death animation lasts 99 frames (~1650ms)
 
-            // Flash skeleton three times (150ms each ≈ 9 frames), then show normal sprite fading out slowly
+            // Flash skeleton three times (150ms each ≈ 9 frames), then show normal sprite fading out
             // Frames 0-8: skeleton (first flash - 150ms)
             // Frames 9-17: dog
             // Frames 18-26: skeleton (second flash - 150ms)
             // Frames 27-35: dog
             // Frames 36-44: skeleton (third flash - 150ms)
-            // Frames 45-134: dog (fading out slowly over ~1500ms)
+            // Frames 45-98: dog (fading out over 900ms)
             const frame = enemy.deathFrame;
             const showSkeleton =
               (frame >= 0 && frame <= 8) ||
@@ -1378,7 +1314,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
               gameState.celebrationTimer = 120; // Show celebration face for 120 frames (~2 seconds)
               gameState.consecutiveHits = 0; // Reset counter so player can get another 10-hit streak
 
-              // Show supporter with positive message
+              // Show supporter with positive message (batch update to avoid re-render during gameplay)
               const randomImage =
                 supporterImages[
                   Math.floor(Math.random() * supporterImages.length)
@@ -1387,12 +1323,15 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
                 positiveMessages[
                   Math.floor(Math.random() * positiveMessages.length)
                 ];
-              setSupporterDisplay({
+              const newSupporterData = {
                 visible: true,
-                fadeState: "in",
+                fadeState: "in" as const,
                 image: randomImage,
                 text: randomText,
-              });
+              };
+              supporterDisplayRef.current = newSupporterData;
+              // Defer state update to avoid re-render during game loop
+              requestAnimationFrame(() => setSupporterDisplay(newSupporterData));
               supporterTimerRef.current = 0; // Reset timer
             }
 
@@ -1411,7 +1350,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
               playSoundFromPool(hitSound3PoolRef.current, "hitSound3");
             }
 
-            setScore((prev) => prev + 1); // Count each enemy hit
+            scoreRef.current += 1; // Count each enemy hit (use ref to avoid re-renders)
           }
         });
       });
@@ -1441,7 +1380,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
           ) {
             // Immobilize player
             gameState.isImmobilized = true;
-            gameState.immobilizedTimer = 240; // 4 seconds at 60fps
+            gameState.immobilizedTimer = 168; // 2.8 seconds at 60fps (30% less than 4 seconds)
             gameState.immobilizedFlashFrame = 0;
 
             // Play Candyman hit sound
@@ -1460,12 +1399,15 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
                 negativeMessages[
                   Math.floor(Math.random() * negativeMessages.length)
                 ];
-              setSupporterDisplay({
+              const newSupporterData = {
                 visible: true,
-                fadeState: "in",
+                fadeState: "in" as const,
                 image: randomImage,
                 text: randomText,
-              });
+              };
+              supporterDisplayRef.current = newSupporterData;
+              // Defer state update to avoid re-render during game loop
+              requestAnimationFrame(() => setSupporterDisplay(newSupporterData));
               supporterTimerRef.current = 0; // Reset timer
               lastNegativeSupporterFrame.current = gameState.animationFrame; // Record when this negative supporter was shown
             }
@@ -1478,13 +1420,13 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
     };
 
     // Update game state
-    const update = () => {
+    const update = (deltaMultiplier: number = 1.0) => {
       const p = gameState.player;
 
       // Update immobilization timer
       if (gameState.isImmobilized) {
-        gameState.immobilizedTimer--;
-        gameState.immobilizedFlashFrame++;
+        gameState.immobilizedTimer -= deltaMultiplier;
+        gameState.immobilizedFlashFrame += deltaMultiplier;
 
         if (gameState.immobilizedTimer <= 0) {
           gameState.isImmobilized = false;
@@ -1505,21 +1447,21 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
       if (isMovingUp) {
         // Accelerate upward
         gameState.velocityY = Math.max(
-          gameState.velocityY - 0.7,
+          gameState.velocityY - 0.7 * deltaMultiplier,
           -p.speed * 1.5
         );
         gameState.isPlayerMoving = true;
       } else if (isMovingDown) {
         // Accelerate downward (with inertia)
         gameState.velocityY = Math.min(
-          gameState.velocityY + 0.7,
+          gameState.velocityY + 0.7 * deltaMultiplier,
           p.speed * 1.5
         );
         gameState.isPlayerMoving = true;
       } else {
         // Apply friction/deceleration when no keys pressed
         if (Math.abs(gameState.velocityY) > 0.1) {
-          gameState.velocityY *= 0.8; // Gradual slowdown with more coasting
+          gameState.velocityY *= Math.pow(0.8, deltaMultiplier); // Gradual slowdown with more coasting
           gameState.isPlayerMoving = true;
         } else {
           gameState.velocityY = 0;
@@ -1529,7 +1471,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
 
       // Apply velocity to position
       if (gameState.isPlayerMoving) {
-        p.y += gameState.velocityY;
+        p.y += gameState.velocityY * deltaMultiplier;
         // Clamp position - allow moving slightly outside screen vertically
         p.y = Math.max(
           -p.height * 0.3,
@@ -1544,26 +1486,34 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
         p.y = gameState.basePlayerY + floatOffset;
       }
 
-      // Handle recoil animation with smooth easing (no overshoot)
+      // Handle recoil animation with asymmetric timing (fast recoil, slower return)
       if (gameState.recoilProgress < 1) {
-        // Advance animation progress (54 frames = 900ms at 60fps)
-        gameState.recoilProgress += 1 / 54; // Increment by 1/54 each frame for 900ms duration
+        // Advance animation progress (36 frames = 600ms at 60fps)
+        gameState.recoilProgress += (1 / 36) * deltaMultiplier; // Increment by 1/36 each frame for 600ms duration
 
         if (gameState.recoilProgress >= 1) {
           gameState.recoilProgress = 1; // Clamp to 1 when done
         }
 
-        // Easing function: smooth out and back with no overshoot
-        // Using ease-out-cubic for the return: fast start, slow end
         const t = gameState.recoilProgress;
-        const easeProgress =
-          t < 0.5
-            ? 2 * t * t // Ease out in first half (going back)
-            : 1 - Math.pow(-2 * t + 2, 2) / 2; // Ease in during second half (returning)
+        let offsetMultiplier;
 
-        // Calculate current offsets based on eased progress
-        // Progress goes 0 -> 1 -> 0 (out and back)
-        const offsetMultiplier = t < 0.5 ? easeProgress : 1 - easeProgress;
+        // Asymmetric timing: fast recoil (0-0.33 = 200ms), slower return (0.33-1.0 = 400ms)
+        if (t < 0.33) {
+          // RECOIL PHASE (200ms): Fast snap back using ease-out cubic
+          // Maps t from [0, 0.33] to [0, 1] for the recoil curve
+          const recoilT = t / 0.33;
+          // Ease-out cubic: fast start, slow end (perfect for recoil snap)
+          const eased = 1 - Math.pow(1 - recoilT, 3);
+          offsetMultiplier = eased; // Goes from 0 to 1
+        } else {
+          // RETURN PHASE (400ms): Smooth return using ease-in-out
+          // Maps t from [0.33, 1.0] to [0, 1] for the return curve
+          const returnT = (t - 0.33) / 0.67;
+          // Ease-in-out sine: smooth, controlled return
+          const eased = -(Math.cos(Math.PI * returnT) - 1) / 2;
+          offsetMultiplier = 1 - eased; // Goes from 1 to 0
+        }
 
         const recoilOffsetX = gameState.recoilMaxOffsetX * offsetMultiplier;
         const recoilOffsetY = gameState.recoilMaxOffsetY * offsetMultiplier;
@@ -1579,42 +1529,50 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
       // Increment bullet lifetime
       gameState.bullets.forEach((bullet) => {
         if (bullet.active) {
-          bullet.lifetime++;
+          bullet.lifetime += deltaMultiplier;
         }
       });
 
-      // Update enemies
-      gameState.enemies = gameState.enemies.filter((enemy) => {
+      // Update enemies - iterate in reverse to safely remove while looping
+      for (let i = gameState.enemies.length - 1; i >= 0; i--) {
+        const enemy = gameState.enemies[i];
+        
         // Update death animation
         if (enemy.isDying) {
           if (enemy.deathFrame !== undefined) {
-            enemy.deathFrame++;
+            enemy.deathFrame += deltaMultiplier;
 
             // Make the enemy fall downward while dying
             const fallSpeed = 2.5; // Pixels per frame falling speed
-            enemy.y += fallSpeed;
+            enemy.y += fallSpeed * deltaMultiplier;
 
             // Optionally slow down horizontal movement while dying
-            enemy.x -= enemy.speed * 0.3; // 30% of normal speed
+            enemy.x -= enemy.speed * 0.3 * deltaMultiplier; // 30% of normal speed
 
-            // Remove enemy after death animation completes (135 frames) OR if it falls off screen
+            // Remove enemy after death animation completes (99 frames) OR if it falls off screen
             if (
-              enemy.deathFrame >= 135 ||
+              enemy.deathFrame >= 99 ||
               enemy.y > canvas.height + enemy.height
             ) {
-              return false;
+              gameState.enemies.splice(i, 1); // Remove this enemy
             }
           }
-          return true;
+          continue; // Skip to next enemy
         }
 
+        // Remove inactive enemies
+        if (!enemy.active) {
+          gameState.enemies.splice(i, 1);
+          continue;
+        }
+        
         // Move active enemies
-        if (!enemy.active) return false;
-        enemy.x -= enemy.speed;
+        enemy.x -= enemy.speed * deltaMultiplier;
 
         // Remove enemies that have escaped off screen (no penalty)
         if (enemy.x + enemy.width <= 0) {
-          return false; // Remove the enemy
+          gameState.enemies.splice(i, 1);
+          continue;
         }
 
         // Special movement for Candyman: follow the player
@@ -1633,22 +1591,25 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
             // Move towards player quickly and aggressively
             if (verticalDistance > 0) {
               // Enemy is below player, move up
-              enemy.y -= followSpeed;
+              enemy.y -= followSpeed * deltaMultiplier;
             } else {
               // Enemy is above player, move down
-              enemy.y += followSpeed;
+              enemy.y += followSpeed * deltaMultiplier;
             }
           }
 
           // Continue to next enemy
-          return enemy.x + enemy.width > 0;
+          continue;
         }
 
         // Check if enemy should avoid the player (regular enemies)
         const playerCenterY = p.y + p.height / 2;
         const enemyCenterY = enemy.y + enemy.height / 2;
         const verticalDistance = Math.abs(enemyCenterY - playerCenterY);
-        const avoidanceZone = 150; // If within 150 pixels vertically, try to avoid
+        
+        // Scale avoidance zone to viewport height for consistency
+        const verticalSpeedScale = canvas.height / 900; // Same scale as movement patterns
+        const avoidanceZone = 150 * verticalSpeedScale; // Scaled to screen size
         const isAvoiding = verticalDistance < avoidanceZone;
 
         let currentVerticalSpeed = enemy.verticalSpeed;
@@ -1687,8 +1648,11 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
 
           // MUCH FASTER vertical speed when avoiding!
           // The closer they are, the faster they move
+          // Increased speed values and scaled to screen size for aggressive avoidance
           const proximityRatio = 1 - verticalDistance / avoidanceZone;
-          currentVerticalSpeed = 2.5 + proximityRatio * 2.5; // 2.5-5 pixels per frame (10-20x faster!)
+          const baseSpeed = 4.0 * verticalSpeedScale; // Increased from 2.5
+          const maxSpeed = 8.0 * verticalSpeedScale; // Increased from 5.0
+          currentVerticalSpeed = baseSpeed + proximityRatio * (maxSpeed - baseSpeed); // 4-8 pixels per frame (scaled)
 
           // Still respect boundaries, but with avoidance priority
           // If we hit a boundary while trying to avoid, clamp but keep trying to avoid
@@ -1706,20 +1670,24 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
         }
 
         // Apply vertical movement (use boosted speed when avoiding)
-        enemy.currentOffset += enemy.verticalDirection * currentVerticalSpeed;
+        enemy.currentOffset += enemy.verticalDirection * currentVerticalSpeed * deltaMultiplier;
 
         // Apply the offset to Y position
         enemy.y = enemy.baseY + enemy.currentOffset;
-
-        return enemy.x + enemy.width > 0;
-      });
+      }
 
       // Check collisions BEFORE removing expired bullets
       checkCollisions();
 
-      // Remove expired bullets AFTER collision check
-      gameState.bullets = gameState.bullets.filter((bullet) => {
-        if (!bullet.active) return false;
+      // Remove expired bullets - iterate in reverse to safely remove while looping
+      for (let i = gameState.bullets.length - 1; i >= 0; i--) {
+        const bullet = gameState.bullets[i];
+        
+        if (!bullet.active) {
+          gameState.bullets.splice(i, 1);
+          continue;
+        }
+        
         // Remove bullet after its lifetime expires
         if (bullet.lifetime >= bullet.maxLifetime) {
           // If bullet expired without hitting anything
@@ -1727,42 +1695,48 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
             gameState.consecutiveHits = 0; // Always reset consecutive hits on miss
             gameState.missTimer = 60; // Always show angry face for 60 frames (~1 second)
           }
-          return false;
+          gameState.bullets.splice(i, 1);
         }
-        return true;
-      });
+      }
 
       // Decrement miss timer
       if (gameState.missTimer > 0) {
-        gameState.missTimer--;
+        gameState.missTimer -= deltaMultiplier;
       }
 
       // Decrement celebration timer
       if (gameState.celebrationTimer > 0) {
-        gameState.celebrationTimer--;
+        gameState.celebrationTimer -= deltaMultiplier;
       }
 
       spawnEnemy();
       spawnCandyman();
-      gameState.animationFrame++;
+      gameState.animationFrame += deltaMultiplier;
+      
+      // Sync score from ref to state every 30 frames (~500ms) to update UI without constant re-renders
+      if (Math.floor(gameState.animationFrame) % 30 === 0) {
+        requestAnimationFrame(() => setScore(scoreRef.current));
+      }
 
       // Update supporter animation
       if (supporterDisplayRef.current && supporterDisplayRef.current.visible) {
-        supporterTimerRef.current++;
+        supporterTimerRef.current += deltaMultiplier;
 
         // Fade in: 0-18 frames (300ms)
         // Visible: 18-138 frames (2000ms at full opacity)
         // Fade out: 138-210 frames (1200ms) - 4x longer than fade in
-        if (supporterTimerRef.current === 18) {
-          setSupporterDisplay((prev) =>
-            prev ? { ...prev, fadeState: "visible" } : null
-          );
-        } else if (supporterTimerRef.current === 138) {
-          setSupporterDisplay((prev) =>
-            prev ? { ...prev, fadeState: "out" } : null
-          );
+        const prevTimer = supporterTimerRef.current - deltaMultiplier;
+        if (prevTimer < 18 && supporterTimerRef.current >= 18) {
+          const newData = supporterDisplayRef.current ? { ...supporterDisplayRef.current, fadeState: "visible" as const } : null;
+          supporterDisplayRef.current = newData;
+          requestAnimationFrame(() => setSupporterDisplay(newData));
+        } else if (prevTimer < 138 && supporterTimerRef.current >= 138) {
+          const newData = supporterDisplayRef.current ? { ...supporterDisplayRef.current, fadeState: "out" as const } : null;
+          supporterDisplayRef.current = newData;
+          requestAnimationFrame(() => setSupporterDisplay(newData));
         } else if (supporterTimerRef.current >= 210) {
-          setSupporterDisplay(null);
+          supporterDisplayRef.current = null;
+          requestAnimationFrame(() => setSupporterDisplay(null));
           supporterTimerRef.current = 0;
         }
       }
@@ -1800,17 +1774,29 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
       drawEnemies();
     };
 
-    // Game loop
+    // Game loop with delta time for consistent speed across all refresh rates
     let gameLoop: number;
-    const animate = () => {
+    let lastFrameTime = performance.now();
+    const targetFPS = 60;
+    const targetFrameTime = 1000 / targetFPS; // ~16.67ms per frame at 60fps
+    
+    const animate = (currentTime: number) => {
+      const deltaTime = currentTime - lastFrameTime;
+      const deltaMultiplier = deltaTime / targetFrameTime; // 1.0 at 60fps, 2.0 at 30fps, 0.5 at 120fps
+      
       if (!isPausedRef.current && !isGameOverRef.current) {
-        update();
+        update(deltaMultiplier);
+        draw();
+      } else if (isPausedRef.current) {
+        // Only redraw when paused (don't update)
+        draw();
       }
-      draw();
+      
+      lastFrameTime = currentTime;
       gameLoop = requestAnimationFrame(animate);
     };
 
-    animate();
+    gameLoop = requestAnimationFrame(animate);
 
     // Cleanup
     return () => {
@@ -1823,7 +1809,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
       }
-
+      
       // Remove music start listeners if they exist
       if ((window as any).__cleanupMusicListeners) {
         (window as any).__cleanupMusicListeners();
@@ -1838,22 +1824,16 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
       if (isPaused || isGameOver) {
         audioRef.current.pause();
       } else {
-        audioRef.current.play().catch((error) => {
-          console.log("Audio playback failed:", error);
-        });
+        audioRef.current.play().catch(() => {});
       }
     }
   }, [isPaused, isGameOver]);
 
   // Timer countdown
   useEffect(() => {
-    console.log(
-      `⏱️ Timer effect triggered - timeLeft: ${timeLeft}, isPaused: ${isPausedRef.current}, isGameOver: ${isGameOverRef.current}`
-    );
-
     if (timeLeft <= 0) {
-      // Time's up - always show victory screen
-      console.log("⏱️ Time reached 0, setting game over");
+      // Time's up - sync score from ref to state and show victory screen
+      setScore(scoreRef.current);
       setIsGameOver(true);
       return;
     }
@@ -1861,22 +1841,13 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
     const timer = setInterval(() => {
       // Check pause/game over state inside the interval
       if (isPausedRef.current || isGameOverRef.current) {
-        console.log("⏱️ Timer interval skipped (paused or game over)");
         return; // Skip this tick, but keep interval running
       }
 
-      console.log("⏱️ Timer tick - decrementing from", timeLeft);
-      setTimeLeft((prev) => {
-        const newTime = prev - 1;
-        console.log(`⏱️ Time updated: ${prev} -> ${newTime}`);
-        return newTime;
-      });
+      setTimeLeft((prev) => prev - 1);
     }, 1000);
 
-    console.log(`⏱️ Timer interval created (ID: ${timer})`);
-
     return () => {
-      console.log(`⏱️ Cleaning up timer interval (ID: ${timer})`);
       clearInterval(timer);
     };
   }, [timeLeft]);
@@ -1916,8 +1887,8 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
   };
 
   const handleRestart = () => {
-    console.log("🔄 RESTART: Resetting all game state");
     // Reset all game state
+    scoreRef.current = 0;
     setScore(0);
     setTimeLeft(120);
     setIsGameOver(false);
@@ -1936,7 +1907,6 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
     gameStateRef.current.lastEnemySpawn = Date.now(); // Reset spawn timers
     gameStateRef.current.lastCandymanSpawn = Date.now(); // Reset Candyman spawn timer
     gameStateRef.current.firstCandymanSpawned = false; // Reset first Candyman flag
-    console.log("🔄 RESTART: Complete - timeLeft reset to 120");
   };
 
   return (
