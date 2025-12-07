@@ -302,20 +302,15 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
 
     const gameState = gameStateRef.current;
 
-    // Scale both player AND enemies based on viewport height for visual consistency
-    let playerScale = 1.3; // Baseline for medium screens: 156×234px → 203×304px
-    let enemyScale = 1.3; // Enemies scale proportionally with player
-
-    if (canvas.height < 700) {
-      // Small screens (below 700px)
-      playerScale = 1.0; // 156×234px (original size)
-      enemyScale = 1.0; // 180px (original size)
-    } else if (canvas.height >= 1000) {
-      // Large screens (1000px+)
-      playerScale = 1.5; // 234×351px (50% bigger)
-      enemyScale = 1.5; // 270px (50% bigger)
-    }
-    // Medium screens (700-999px) use 1.3 scale (30% bigger)
+    // Percentage-based scaling: elements scale proportionally to viewport height
+    // Reference height: 900px (baseline where scale = 1.0)
+    // This ensures consistent visual proportions across all screen sizes
+    const referenceHeight = 900;
+    const scale = canvas.height / referenceHeight;
+    
+    // Apply scaling to both player and enemies
+    const playerScale = scale;
+    const enemyScale = scale;
 
     const enemyTargetHeight = 180 * enemyScale; // Base enemy height: 180px, scaled
 
@@ -2196,3 +2191,4 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
     </div>
   );
 }
+
