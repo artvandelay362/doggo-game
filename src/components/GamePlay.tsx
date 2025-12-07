@@ -156,6 +156,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
   const cheatCodeRef = useRef(""); // Track cheat code input
   const supporterTimerRef = useRef(0); // Track supporter animation timer
   const lastNegativeSupporterFrame = useRef(-999); // Track when last negative supporter was shown (initialize to allow first trigger)
+  const lastSupporterImageRef = useRef<string | null>(null); // Track last shown supporter image to avoid repeats
   const musicStartedRef = useRef(false); // Track if background music has started
   const gameStateRef = useRef({
     player: { x: 50, y: 0, width: 156, height: 234, speed: 2.0 },
@@ -185,6 +186,23 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
     immobilizedTimer: 0, // Frames remaining for immobilization (240 frames = 4 seconds)
     immobilizedFlashFrame: 0, // Frame counter for flashing effect
   });
+
+  // Helper function to get a random supporter image that's different from the last one
+  const getRandomSupporterImage = (): string => {
+    if (supporterImages.length === 1) {
+      return supporterImages[0];
+    }
+    
+    // Filter out the last shown image if we have more than one option
+    const availableImages = lastSupporterImageRef.current
+      ? supporterImages.filter(img => img !== lastSupporterImageRef.current)
+      : supporterImages;
+    
+    // Pick a random image from available options
+    const randomImage = availableImages[Math.floor(Math.random() * availableImages.length)];
+    lastSupporterImageRef.current = randomImage;
+    return randomImage;
+  };
 
   // Sync isPaused, isGameOver, and supporterDisplay state with refs
   useEffect(() => {
@@ -1315,10 +1333,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
               gameState.consecutiveHits = 0; // Reset counter so player can get another 10-hit streak
 
               // Show supporter with positive message (batch update to avoid re-render during gameplay)
-              const randomImage =
-                supporterImages[
-                  Math.floor(Math.random() * supporterImages.length)
-                ];
+              const randomImage = getRandomSupporterImage();
               const randomText =
                 positiveMessages[
                   Math.floor(Math.random() * positiveMessages.length)
@@ -1391,10 +1406,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
               gameState.animationFrame - lastNegativeSupporterFrame.current;
             if (framesSinceLastNegative >= 300) {
               // Show supporter with negative message
-              const randomImage =
-                supporterImages[
-                  Math.floor(Math.random() * supporterImages.length)
-                ];
+              const randomImage = getRandomSupporterImage();
               const randomText =
                 negativeMessages[
                   Math.floor(Math.random() * negativeMessages.length)
