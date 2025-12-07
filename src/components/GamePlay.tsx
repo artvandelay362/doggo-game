@@ -608,7 +608,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
       // Play with error handling
       const playPromise = audio.play();
       if (playPromise !== undefined) {
-        playPromise.catch((error) => {
+        playPromise.catch((_error) => {
           // If audio isn't ready yet, try to load it first
           if (audio.readyState < 2) {
             audio.load();
