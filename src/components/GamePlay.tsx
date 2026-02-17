@@ -240,12 +240,12 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
       return pool;
     };
 
-    hitSound1PoolRef.current = initAudioPool("https://files.catbox.moe/9q9cj2.mp3");
-    hitSound2PoolRef.current = initAudioPool("https://files.catbox.moe/k070y2.mp3");
-    hitSound3PoolRef.current = initAudioPool("https://files.catbox.moe/xeapud.mp3");
+    hitSound1PoolRef.current = initAudioPool("https://github.com/artvandelay362/doggo-game/raw/refs/heads/main/sounds/bark1.mp3");
+    hitSound2PoolRef.current = initAudioPool("https://github.com/artvandelay362/doggo-game/raw/refs/heads/main/sounds/bark2.mp3");
+    hitSound3PoolRef.current = initAudioPool("https://github.com/artvandelay362/doggo-game/raw/refs/heads/main/sounds/bark3.mp3");
     shootSound1PoolRef.current = initAudioPool("https://github.com/artvandelay362/doggo-game/raw/refs/heads/main/sounds/zap-1.mp3");
-    shootSound2PoolRef.current = initAudioPool("https://files.catbox.moe/cp0rjm.mp3");
-    candymanHitSoundPoolRef.current = initAudioPool("https://files.catbox.moe/udwke3.mp3");
+    shootSound2PoolRef.current = initAudioPool("https://github.com/artvandelay362/doggo-game/raw/refs/heads/main/sounds/zap-2.mp3");
+    candymanHitSoundPoolRef.current = initAudioPool("https://github.com/artvandelay362/doggo-game/raw/refs/heads/main/sounds/hit.mp3");
 
     // Setup background music with aggressive autoplay strategy
     if (audioRef.current) {
@@ -1922,18 +1922,18 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
     <div className="size-full relative bg-gradient-to-b from-slate-900 to-slate-800">
       {/* Background music */}
       <audio ref={audioRef} loop preload="auto">
-        <source src="https://files.catbox.moe/dl702b.mp3" type="audio/mpeg" />
+        <source src="https://github.com/artvandelay362/doggo-game/raw/refs/heads/main/sounds/tetris%20theme.mp3" type="audio/mpeg" />
       </audio>
 
       {/* Hit sound effects */}
       <audio ref={hitSound1Ref} preload="auto">
-        <source src="https://files.catbox.moe/9q9cj2.mp3" type="audio/mpeg" />
+        <source src="https://github.com/artvandelay362/doggo-game/raw/refs/heads/main/sounds/bark1.mp3" type="audio/mpeg" />
       </audio>
       <audio ref={hitSound2Ref} preload="auto">
-        <source src="https://files.catbox.moe/k070y2.mp3" type="audio/mpeg" />
+        <source src="https://github.com/artvandelay362/doggo-game/raw/refs/heads/main/sounds/bark2.mp3" type="audio/mpeg" />
       </audio>
       <audio ref={hitSound3Ref} preload="auto">
-        <source src="https://files.catbox.moe/xeapud.mp3" type="audio/mpeg" />
+        <source src="https://github.com/artvandelay362/doggo-game/raw/refs/heads/main/sounds/bark3.mp3" type="audio/mpeg" />
       </audio>
 
       {/* Shoot sound effects */}
@@ -1941,12 +1941,12 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
         <source src="https://github.com/artvandelay362/doggo-game/raw/refs/heads/main/sounds/zap-1.mp3" />
       </audio>
       <audio ref={shootSound2Ref} preload="auto">
-        <source src="https://files.catbox.moe/cp0rjm.mp3" type="audio/mpeg" />
+        <source src="https://github.com/artvandelay362/doggo-game/raw/refs/heads/main/sounds/zap-2.mp3" type="audio/mpeg" />
       </audio>
 
       {/* Candyman hit sound */}
       <audio ref={candymanHitSoundRef} preload="auto">
-        <source src="https://files.catbox.moe/udwke3.mp3" type="audio/mpeg" />
+        <source src="https://github.com/artvandelay362/doggo-game/raw/refs/heads/main/sounds/hit.mp3" type="audio/mpeg" />
       </audio>
 
       {/* Canvas - Full screen */}
