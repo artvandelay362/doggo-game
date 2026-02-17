@@ -243,7 +243,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
     hitSound1PoolRef.current = initAudioPool("https://files.catbox.moe/9q9cj2.mp3");
     hitSound2PoolRef.current = initAudioPool("https://files.catbox.moe/k070y2.mp3");
     hitSound3PoolRef.current = initAudioPool("https://files.catbox.moe/xeapud.mp3");
-    shootSound1PoolRef.current = initAudioPool("https://files.catbox.moe/qm4nuo.mp3");
+    shootSound1PoolRef.current = initAudioPool("https://github.com/artvandelay362/doggo-game/raw/refs/heads/main/sounds/zap-1.mp3");
     shootSound2PoolRef.current = initAudioPool("https://files.catbox.moe/cp0rjm.mp3");
     candymanHitSoundPoolRef.current = initAudioPool("https://files.catbox.moe/udwke3.mp3");
 
@@ -1938,7 +1938,7 @@ export default function GamePlay({ onQuit }: GamePlayProps) {
 
       {/* Shoot sound effects */}
       <audio ref={shootSound1Ref} preload="auto">
-        <source src="https://files.catbox.moe/qm4nuo.mp3" type="audio/mpeg" />
+        <source src="https://github.com/artvandelay362/doggo-game/raw/refs/heads/main/sounds/zap-1.mp3" />
       </audio>
       <audio ref={shootSound2Ref} preload="auto">
         <source src="https://files.catbox.moe/cp0rjm.mp3" type="audio/mpeg" />
